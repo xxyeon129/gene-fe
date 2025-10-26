@@ -1,5 +1,10 @@
+/**
+ * @description [품질관리 대시보드 페이지] 프로젝트 관리 섹션 UI 컴포넌트
+ */
+
 import * as S from "./projectList.styles";
 import { DASHBOARD_PROJECTS } from "@/pages/dashboard/consts/dashboard.const";
+// icons
 import { FaCircle } from "react-icons/fa";
 import { FaCheck } from "react-icons/fa";
 import { MdOutlineRefresh } from "react-icons/md";

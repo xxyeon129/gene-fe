@@ -8,8 +8,8 @@ export const Layout = styled.div`
 
 export const Main = styled.main<{ $isNavVisible: boolean }>`
   width: ${({ $isNavVisible }) => ($isNavVisible ? "calc(100% - 15rem)" : "100%")};
-  height: 100vh;
+  margin-left: ${({ $isNavVisible }) => ($isNavVisible ? "15rem" : "0")};
+  height: 100%;
   background-color: ${({ theme }) => theme.colors.background.default};
-  padding: 2rem;
-  padding-top: 2.5rem;
+  padding: 2.5rem 2rem 5rem 2rem;
 `;

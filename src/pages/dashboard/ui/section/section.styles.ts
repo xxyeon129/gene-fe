@@ -1,7 +1,7 @@
 import { cssCard } from "@/shared";
 import styled from "styled-components";
 
-export const Section = styled.section`
+export const CommonSection = styled.section`
   ${cssCard}
   margin-top: 2rem;
 
@@ -11,5 +11,3 @@ export const Section = styled.section`
 
   row-gap: 1rem;
 `;
-
-// project list =============================================

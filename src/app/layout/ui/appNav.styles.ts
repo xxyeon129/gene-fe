@@ -2,6 +2,11 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 
 export const Nav = styled.nav`
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  background-color: white;
   height: 100vh;
   width: 15rem;
   display: flex;
