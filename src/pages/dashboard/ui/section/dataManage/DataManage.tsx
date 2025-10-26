@@ -3,13 +3,16 @@
  */
 
 import { CardHeader } from "@/widgets";
+// icons
 import { TbDatabase } from "react-icons/tb";
 import { FiFileText } from "react-icons/fi";
+import { FiEye } from "react-icons/fi";
+// styles
 import * as St from "../section.styles";
 import * as S from "./dataManage.styles";
-import { UPLOADED_DATA } from "./const";
 import { useTheme } from "styled-components";
-import { FiEye } from "react-icons/fi";
+// const
+import { UPLOADED_DATA } from "./const";
 
 export const DataManage = () => {
   const theme = useTheme();

@@ -1,0 +1,1 @@
+export { DataManage } from "./DataManage";

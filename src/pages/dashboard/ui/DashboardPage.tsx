@@ -3,8 +3,7 @@
  */
 
 import { DashboardHeader } from "./header";
-import { ProjectManage } from "./section";
-import { DataManage } from "./section/dataManage/DataManage";
+import { ProjectManage, DataManage, Statistics } from "./section";
 
 export const DashboardPage = () => {
   return (
@@ -15,6 +14,8 @@ export const DashboardPage = () => {
       <ProjectManage />
       {/* 데이터 업로드 및 관리 section */}
       <DataManage />
+      {/* 통계 section */}
+      <Statistics />
     </article>
   );
 };
