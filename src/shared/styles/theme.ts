@@ -25,6 +25,10 @@ const colors = {
   blue: {
     primary: "#377DF4",
   },
+  border: {
+    gray: "#E8EDF3",
+    lightGray: "#F1F4F7",
+  },
 };
 
 const theme = {

@@ -11,4 +11,5 @@ export const Main = styled.main<{ $isNavVisible: boolean }>`
   height: 100vh;
   background-color: ${({ theme }) => theme.colors.background.default};
   padding: 2rem;
+  padding-top: 2.5rem;
 `;

@@ -15,6 +15,10 @@ declare module "styled-components" {
       blue: {
         primary: string;
       };
+      border: {
+        gray: string;
+        lightGray: string;
+      };
     };
     fontSize: {
       xs: string;
