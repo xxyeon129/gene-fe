@@ -1,0 +1,95 @@
+/* NOTE: box-sizing 규칙을 명시 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* NOTE: 폰트 크기의 팽창을 방지 */
+html {
+  -moz-text-size-adjust: none;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+}
+
+/* NOTE: 기본 여백 제거 */
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin-block-end: 0;
+}
+
+/* NOTE: ul, ol 요소의 기본 목록 스타일을 제거 */
+ul,
+ol {
+  list-style: none;
+  margin-block-start: 0;
+  margin-block-end: 0;
+  margin-inline-start: 0;
+  margin-inline-end: 0;
+  padding-inline-start: 0;
+}
+
+/* NOTE: 핵심 body의 기본값 설정 */
+body {
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* NOTE: 제목 요소와 상호작용하는 요소에 대해 line-height를 더 짧게 설정 */
+h1,
+h2,
+h3,
+h4,
+button,
+input,
+label {
+  line-height: 1.1;
+  margin: 0;
+}
+
+/* 제목에 대한 text-wrap을 balance로 설정 */
+h1,
+h2,
+h3,
+h4 {
+  text-wrap: balance;
+}
+
+/* NOTE: 클래스가 없는 기본 a 태그 요소는 기본 스타일을 가져옴 */
+a:not([class]) {
+  text-decoration-skip-ink: auto;
+  color: currentColor;
+}
+
+/* NOTE: 이미지 관련 작업 */
+img,
+picture {
+  max-width: 100%;
+  display: block;
+}
+
+/* NOTE: input 및 button 항목들이 글꼴을 상속하도록 처리 */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* NOTE: 행 속성이 없는 textarea가 너무 작지 않도록 처리 */
+textarea:not([rows]) {
+  min-height: 10em;
+}
+
+/* NOTE: 고정된 모든 항목에 여분의 스크롤 여백 설정 */
+:target {
+  scroll-margin-block: 5ex;
+}

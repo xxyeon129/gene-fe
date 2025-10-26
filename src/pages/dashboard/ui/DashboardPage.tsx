@@ -3,5 +3,5 @@
  */
 
 export const DashboardPage = () => {
-  return <div>Dashboard Page</div>;
+  return <h1>품질관리 대시보드</h1>;
 };
