@@ -1,0 +1,32 @@
+import "styled-components";
+
+declare module "styled-components" {
+  export interface DefaultTheme {
+    colors: {
+      background: {
+        default: string;
+        skyBlue: string;
+      };
+      text: {
+        default: string;
+        gray: string;
+        lightGray: string;
+      };
+      blue: {
+        primary: string;
+      };
+    };
+    fontSize: {
+      xs: string;
+      sm: string;
+      base: string;
+      md: string;
+      lg: string;
+    };
+    windowSize: {
+      small: string;
+      base: string;
+      large: string;
+    };
+  }
+}

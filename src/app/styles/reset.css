@@ -19,11 +19,18 @@ h2,
 h3,
 h4,
 p,
+nav,
+ul,
+ol,
+li,
 figure,
 blockquote,
 dl,
-dd {
-  margin-block-end: 0;
+dd,
+button,
+input,
+label {
+  margin: 0;
 }
 
 /* NOTE: ul, ol 요소의 기본 목록 스타일을 제거 */
@@ -52,10 +59,9 @@ button,
 input,
 label {
   line-height: 1.1;
-  margin: 0;
 }
 
-/* 제목에 대한 text-wrap을 balance로 설정 */
+/* NOTE: 제목에 대한 text-wrap을 balance로 설정 */
 h1,
 h2,
 h3,
@@ -63,10 +69,11 @@ h4 {
   text-wrap: balance;
 }
 
-/* NOTE: 클래스가 없는 기본 a 태그 요소는 기본 스타일을 가져옴 */
-a:not([class]) {
+/* NOTE: a 태그 스타일 초기화 */
+a {
   text-decoration-skip-ink: auto;
   color: currentColor;
+  text-decoration: none;
 }
 
 /* NOTE: 이미지 관련 작업 */
