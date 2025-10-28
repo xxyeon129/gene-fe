@@ -5,7 +5,7 @@
 import { CommonBlueButton } from "@/shared";
 import * as S from "./header.styles";
 
-interface CardHeaderProps {
+interface CardTitleProps {
   title: string;
   titleIcon: React.ReactNode;
   description: string;
@@ -14,7 +14,7 @@ interface CardHeaderProps {
   buttonContent?: React.ReactNode;
 }
 
-export const CardHeader = ({ title, titleIcon, description, hasButton = false, buttonContent }: CardHeaderProps) => {
+export const CardTitle = ({ title, titleIcon, description, hasButton = false, buttonContent }: CardTitleProps) => {
   return (
     <S.Header>
       <S.TitleWrapper>

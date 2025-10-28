@@ -1,1 +1,1 @@
-export { CardHeader } from "./ui";
+export { PageHeader, Logo } from "./ui";

@@ -11,5 +11,5 @@ export const Main = styled.main<{ $isNavVisible: boolean }>`
   margin-left: ${({ $isNavVisible }) => ($isNavVisible ? "15rem" : "0")};
   height: 100%;
   background-color: ${({ theme }) => theme.colors.background.default};
-  padding: 2.5rem 2rem 5rem 2rem;
+  padding: ${({ $isNavVisible }) => ($isNavVisible ? "2.5rem 2rem 5rem 2rem" : "0")};
 `;

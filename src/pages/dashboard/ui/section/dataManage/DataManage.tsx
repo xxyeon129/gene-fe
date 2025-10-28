@@ -2,7 +2,7 @@
  * @description [품질관리 대시보드 페이지] 데이터 업로드 및 관리 섹션 UI 컴포넌트
  */
 
-import { CardHeader } from "@/widgets";
+import { CardTitle } from "@/widgets";
 // icons
 import { TbDatabase } from "react-icons/tb";
 import { FiFileText } from "react-icons/fi";
@@ -19,7 +19,7 @@ export const DataManage = () => {
 
   return (
     <St.CommonSection>
-      <CardHeader
+      <CardTitle
         title="데이터 업로드 및 관리"
         titleIcon={<TbDatabase />}
         description="연결/업로드 데이터 리스트 조회 및 새 데이터 업로드"

@@ -22,6 +22,13 @@ export const CommonBlueButton = styled.button`
   }
 `;
 
+export const CommonWhiteBoxSection = styled.section`
+  ${cssBoxShadow};
+  background-color: white;
+  border: 1px solid ${({ theme }) => theme.colors.border.gray};
+  border-radius: 0.75rem;
+`;
+
 export const GrayBackgroundBox = styled.div`
   display: flex;
   flex-direction: column;

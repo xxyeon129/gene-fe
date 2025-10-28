@@ -10,7 +10,7 @@ import { SlGraph } from "react-icons/sl";
 
 const NAV_ITEMS = [
   { label: "대시보드", to: "/", icon: <FiHome /> },
-  { label: "품질 검증", to: PATH_URL.VERIFICATION, icon: <PiMicroscopeBold /> },
+  { label: "품질 검증", to: PATH_URL.VERIFICATION.BASE, icon: <PiMicroscopeBold /> },
   { label: "데이터 결측치", to: PATH_URL.MISSING_VALUE, icon: <SlGraph /> },
 ];
 
