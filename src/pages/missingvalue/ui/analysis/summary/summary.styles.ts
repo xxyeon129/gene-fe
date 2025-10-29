@@ -7,9 +7,9 @@ export const SummaryContainer = styled.article`
 
 const summaryColorMap = {
   backgroundColor: {
-    all: "#FED3D3",
-    sample: "#FEF1BA",
-    gene: "#FED09D",
+    all: `linear-gradient(to right, #FEDCDC, #FED1D1)`,
+    sample: `linear-gradient(to right, #FEF0BA, #FDEA9C)`,
+    gene: `linear-gradient(to right, #FED19F, #FDC385)`,
   },
   borderColor: {
     all: "#FCA5A5",
@@ -30,25 +30,24 @@ export const SummaryItem = styled.section<{ $type: "all" | "sample" | "gene" }>`
   row-gap: 0.5rem;
   padding: 1rem;
   border-radius: 1rem;
-  background-color: ${({ $type }) => summaryColorMap.backgroundColor[$type]};
+  background: ${({ $type }) => summaryColorMap.backgroundColor[$type]};
   border: 2px solid ${({ $type }) => summaryColorMap.borderColor[$type]};
   color: ${({ $type }) => summaryColorMap.textColor[$type]};
-
 `;
 
-export const SummaryItemTitle = styled.p<{$type: "all" | "sample" | "gene"}>`
+export const SummaryItemTitle = styled.p<{ $type: "all" | "sample" | "gene" }>`
   font-size: ${({ theme }) => theme.fontSize.base};
   font-weight: 800;
-  color: #75240A;
+  color: #75240a;
 `;
 
-export const SummaryItemValue = styled.p<{$type: "all" | "sample" | "gene"}>`
+export const SummaryItemValue = styled.p<{ $type: "all" | "sample" | "gene" }>`
   font-size: ${({ theme }) => theme.fontSize.xxl};
   font-weight: 700;
   color: ${({ $type }) => summaryColorMap.textColor[$type]};
 `;
 
-export const SummaryItemDescription = styled.p<{$type: "all" | "sample" | "gene"}>`
+export const SummaryItemDescription = styled.p<{ $type: "all" | "sample" | "gene" }>`
   font-size: ${({ theme }) => theme.fontSize.sm};
   font-weight: 600;
   color: ${({ $type }) => summaryColorMap.textColor[$type]};

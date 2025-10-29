@@ -1,4 +1,4 @@
-import { cssBoxShadow } from "@/shared";
+import { cssBoxShadow, cssGradientBlueBackground } from "@/shared";
 import styled from "styled-components";
 
 export const PageArticle = styled.article`
@@ -9,9 +9,9 @@ export const PageArticle = styled.article`
 
 export const VerificationStartButton = styled.button`
   padding: 0.7rem 2rem;
-  background-color: ${({ theme }) => theme.colors.blue.primary};
+  ${cssGradientBlueBackground}
   color: white;
-  border-radius: 0.7rem;
+  border-radius: 0.6rem;
   font-size: 0.85rem;
   margin: 1rem;
   font-weight: 700;

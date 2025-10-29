@@ -25,7 +25,7 @@ export const AppNav = () => {
       <S.Ul>
         {NAV_ITEMS.map((item) => (
           <S.Li key={item.to}>
-            <S.StyledLink to={item.to}>
+            <S.StyledLink to={item.to} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
               <S.Icon>{item.icon}</S.Icon>
               <S.Label>{item.label}</S.Label>
             </S.StyledLink>

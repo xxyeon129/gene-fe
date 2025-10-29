@@ -1,4 +1,4 @@
-import { cssBoxShadow } from "@/shared";
+import { cssBoxShadow, cssGradientBlueBackground } from "@/shared";
 import { FormControl, Input, Select } from "@mui/material";
 import styled from "styled-components";
 
@@ -68,7 +68,7 @@ export const Button = styled.button`
   margin-top: 1rem;
   padding: 0.75rem 1.5rem;
   border-radius: 0.75rem;
-  background-color: ${({ theme }) => theme.colors.blue.primary};
+  ${cssGradientBlueBackground}
   color: white;
 
   display: flex;

@@ -1,4 +1,4 @@
-import { CommonWhiteBoxSection } from "@/shared";
+import { CommonWhiteBoxSection, cssGradientBlueBackground } from "@/shared";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 
@@ -6,7 +6,7 @@ export const VerificationLayoutArticle = styled.article`
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: fit-content;
+  min-height: 100vh;
   padding: 1rem;
   row-gap: 1rem;
   background-color: ${({ theme }) => theme.colors.background.skyBlue};
@@ -34,7 +34,7 @@ export const WhiteBoxSectionNavList = styled.ul`
 export const WhiteBoxSectionNavItem = styled.li<{ $isActive: boolean }>`
   text-align: center;
   flex: 1;
-  background-color: ${({ $isActive, theme }) => ($isActive ? theme.colors.blue.primary : "transparent")};
+  ${({ $isActive }) => ($isActive ? cssGradientBlueBackground : "background-color: transparent;")}
   border-radius: 0.75rem;
   color: ${({ $isActive, theme }) => ($isActive ? "white" : theme.colors.text.default)};
   padding: 0.75rem 0.85rem;

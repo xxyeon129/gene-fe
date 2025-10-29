@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { CommonWhiteBoxSection } from "@/shared";
+import { CommonWhiteBoxSection, cssGradientBlueBackground } from "@/shared";
 
 export const WhiteBoxSection = styled(CommonWhiteBoxSection)`
   padding: 1.5rem;
@@ -18,10 +18,10 @@ export const RadioOption = styled.div<{ $isSelected: boolean }>`
   align-items: center;
   justify-content: center;
   padding: 1rem 1.5rem;
-  border: 1px solid #ddd;
+  border: 2px solid ${({ $isSelected }) => ($isSelected ? "transparent" : "#def1fe")};
   border-radius: 0.75rem;
   cursor: pointer;
-  background-color: ${({ theme, $isSelected }) => ($isSelected ? theme.colors.blue.primary : "transparent")};
+  ${({ $isSelected }) => ($isSelected ? cssGradientBlueBackground : "background-color: transparent;")}
   transition: background-color 0.2s ease;
   font-weight: 700;
   position: relative;

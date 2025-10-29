@@ -1,4 +1,4 @@
-import { CommonWhiteBoxSection } from "@/shared";
+import { CommonWhiteBoxSection, cssGradientBlueBackground } from "@/shared";
 import styled from "styled-components";
 
 export const WhiteBoxSection = styled(CommonWhiteBoxSection)`
@@ -24,9 +24,9 @@ export const ProjectItem = styled.li<{ $isActive: boolean }>`
   flex-direction: column;
   row-gap: 0.5rem;
   padding: 1rem;
-  border-radius: 0.5rem;
-  background-color: ${({ $isActive, theme }) => ($isActive ? theme.colors.blue.primary : theme.colors.background.default)};
-  border: 2px solid ${({ $isActive, theme }) => ($isActive ? theme.colors.blue.primary : theme.colors.border.gray)};
+  border-radius: 0.7rem;
+  ${({ $isActive, theme }) => ($isActive ? cssGradientBlueBackground : `background-color: ${theme.colors.background.default};`)}
+  border: 2px solid ${({ $isActive, theme }) => ($isActive ? `linear-gradient(to right, #39b7f8, #3a85f6)` : theme.colors.border.gray)};
   color: ${({ $isActive, theme }) => ($isActive ? "white" : theme.colors.text.default)};
 `;
 
