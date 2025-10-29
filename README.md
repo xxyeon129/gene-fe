@@ -1,4 +1,5 @@
 # GENE-Q Frontend
+https://gene-fe.vercel.app/
 
 ## 프로그램 실행
 
@@ -24,4 +25,4 @@ $ yarn start
 
 ## 제출/마감 예정 일자
 
-~10/30 (목목)
+~10/30 (목)
