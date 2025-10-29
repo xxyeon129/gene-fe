@@ -20,7 +20,7 @@ export const cssWithoutNavFullPage = css`
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: fit-content;
+  min-height: 100vh;
   padding: 1rem;
   row-gap: 1rem;
   background-color: ${({ theme }) => theme.colors.background.skyBlue};
