@@ -5,7 +5,6 @@ import { GrayBackgroundBox, GrayBackgroundBoxLabel, GrayBackgroundBoxValue } fro
 
 const St = { GrayBackgroundBox, GrayBackgroundBoxLabel, GrayBackgroundBoxValue };
 
-// Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 const chartData = {

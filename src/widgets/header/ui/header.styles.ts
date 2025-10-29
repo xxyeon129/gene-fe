@@ -22,7 +22,7 @@ export const SubTitle = styled.p`
 export const GoToDashboardButton = styled(Link)`
   background-color: white;
   color: ${({ theme }) => theme.colors.text.gray};
-  border: 1px solid ${({ theme }) => theme.colors.border.gray};
+  border: 2px solid ${({ theme }) => theme.colors.border.gray};
   padding: 0.5rem 1rem;
   border-radius: 0.7rem;
   font-size: ${({ theme }) => theme.fontSize.sm};

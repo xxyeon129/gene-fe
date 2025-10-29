@@ -1,4 +1,4 @@
 export { DashboardPage } from "./dashboard";
-export { VerificationDashboardPage } from "./verification/ui";
+export { VerificationLayout, VerificationDashboardPage, VerificationRulesPage, VerificationExecutePage } from "./verification";
 export { MissingValuePage } from "./missingvalue";
 export { NotFoundErrorPage } from "./error";

@@ -1,0 +1,1 @@
+export { VerificationRulesPage } from "./VerificationRulesPage";
