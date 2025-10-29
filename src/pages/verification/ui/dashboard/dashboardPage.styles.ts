@@ -4,7 +4,6 @@ import styled from "styled-components";
 export const PageArtcile = styled.article`
   display: flex;
   flex-direction: column;
-  margin-top: 1rem;
   row-gap: 1.5rem;
 `;
 
@@ -79,6 +78,7 @@ export const CurrentStatusBar = styled.div`
   height: 0.5rem;
   background-color: ${({ theme }) => theme.colors.border.gray};
   border-radius: 0.5rem;
+  position: relative;
 `;
 
 export const CurrentStatusBarFill = styled.div<{ $score: number }>`
@@ -86,6 +86,14 @@ export const CurrentStatusBarFill = styled.div<{ $score: number }>`
   background-color: #20c48b;
   width: ${({ $score }) => `${($score / 100) * 100}%`};
   border-radius: 0.5rem;
+`;
+
+export const CurrentStatusBarStandardLine = styled.div<{ $standard: number }>`
+  position: absolute;
+  left: ${({ $standard }) => `${($standard / 100) * 100}%`};
+  width: 0.1rem;
+  height: 100%;
+  background-color: black;
 `;
 
 export const CurrentStatusLabel = styled.p`

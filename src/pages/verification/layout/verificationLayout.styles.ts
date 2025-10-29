@@ -6,10 +6,11 @@ export const VerificationLayoutArticle = styled.article`
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100vh;
+  height: fit-content;
   padding: 1rem;
   row-gap: 1rem;
   background-color: ${({ theme }) => theme.colors.background.skyBlue};
+  padding-bottom: 5rem;
 `;
 
 export const WhiteBoxSectionHeader = styled(CommonWhiteBoxSection)`
@@ -21,6 +22,7 @@ export const WhiteBoxSectionNav = styled(CommonWhiteBoxSection)`
   width: 100%;
   height: fit-content;
   padding: 0.3rem;
+  margin-bottom: 1rem;
 `;
 
 export const WhiteBoxSectionNavList = styled.ul`

@@ -1,0 +1,1 @@
+export { VerificationUploadData } from "./VerificationUploadData";

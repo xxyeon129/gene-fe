@@ -80,7 +80,9 @@ export const VerificationDashboardPage = () => {
                   </S.CurrentStatusScoreContainer>
                 </S.StatusTextContainer>
                 <S.CurrentStatusBar>
-                  <S.CurrentStatusBarFill $score={status.score} />
+                  <S.CurrentStatusBarFill $score={status.score}>
+                    <S.CurrentStatusBarStandardLine $standard={status.standard} />
+                  </S.CurrentStatusBarFill>
                 </S.CurrentStatusBar>
               </div>
             ))}

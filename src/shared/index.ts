@@ -1,4 +1,3 @@
 export * from "./router";
-
-// styles
+export * from "./files";
 export * from "./styles";

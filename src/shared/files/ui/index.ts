@@ -1,0 +1,1 @@
+export { CommonUploadFile } from "./CommonUploadFile";

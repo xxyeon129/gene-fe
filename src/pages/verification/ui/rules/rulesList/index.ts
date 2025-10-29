@@ -1,0 +1,1 @@
+export { VerificationRulesList } from "./VerificationRulesList";
