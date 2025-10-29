@@ -11,3 +11,13 @@ export const cssCard = css`
   display: flex;
   flex-direction: column;
 `;
+
+export const cssWithoutNavFullPage = css`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: fit-content;
+  padding: 1rem;
+  row-gap: 1rem;
+  background-color: ${({ theme }) => theme.colors.background.skyBlue};
+`;

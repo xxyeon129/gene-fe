@@ -28,6 +28,8 @@ declare module "styled-components" {
       md: string;
       lg: string;
       xl: string;
+      xxl: string;
+      xxxl: string;
     };
     windowSize: {
       small: string;

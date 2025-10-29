@@ -1,0 +1,1 @@
+export { InterpolateSetting } from "./InterpolateSetting";

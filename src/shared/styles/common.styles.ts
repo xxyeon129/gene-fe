@@ -26,7 +26,7 @@ export const CommonWhiteBoxSection = styled.section`
   ${cssBoxShadow};
   background-color: white;
   border: 1px solid ${({ theme }) => theme.colors.border.gray};
-  border-radius: 0.75rem;
+  border-radius: 0.85rem;
 `;
 
 export const GrayBackgroundBox = styled.div`
@@ -48,4 +48,9 @@ export const GrayBackgroundBoxLabel = styled.p`
 export const GrayBackgroundBoxValue = styled.p`
   font-size: ${({ theme }) => theme.fontSize.base};
   font-weight: 700;
+`;
+
+export const TopHeaderWrapperWhiteBox = styled(CommonWhiteBoxSection)`
+  width: 100%;
+  padding: 1rem 1.5rem;
 `;

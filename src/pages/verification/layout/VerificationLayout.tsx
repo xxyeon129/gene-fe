@@ -21,6 +21,7 @@ export const VerificationLayout = () => {
       <S.WhiteBoxSectionHeader>
         <PageHeader />
       </S.WhiteBoxSectionHeader>
+      
       <S.WhiteBoxSectionNav>
         <S.WhiteBoxSectionNavList>
           {NAV_ITEMS.map((item) => (
