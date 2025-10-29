@@ -1,9 +1,7 @@
 import styled from "styled-components";
 import { CommonSection } from "../../section.styles";
 
-export const DataStatisticsContainer = styled(CommonSection)`
-  height: 36.5rem;
-`;
+export const DataStatisticsContainer = styled(CommonSection)``;
 
 export const DataStatisticsUl = styled.ul`
   display: flex;

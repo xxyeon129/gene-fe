@@ -2,7 +2,6 @@ import styled from "styled-components";
 import { CommonSection } from "../../section.styles";
 
 export const GraphContainer = styled(CommonSection)`
-  height: 36.5rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;

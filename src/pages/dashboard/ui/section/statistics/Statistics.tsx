@@ -5,12 +5,8 @@ import * as S from "./statistics.styles";
 export const Statistics = () => {
   return (
     <S.Section>
-      <S.CardArticle>
-        <StatisticsList />
-      </S.CardArticle>
-      <S.CardArticle>
-        <StatisticsGraph />
-      </S.CardArticle>
+      <StatisticsList />
+      <StatisticsGraph />
     </S.Section>
   );
 };
