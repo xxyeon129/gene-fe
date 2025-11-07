@@ -1,4 +1,5 @@
-# GENE-Q Frontend
+# GENE-Q Frontend 1차 UI 버전
+
 https://gene-fe.vercel.app/
 
 ## 프로그램 실행
