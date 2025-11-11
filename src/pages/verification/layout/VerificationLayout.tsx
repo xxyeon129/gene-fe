@@ -8,9 +8,9 @@ import { PATH_URL } from "@/shared";
 import { PageHeader } from "@/widgets";
 
 const NAV_ITEMS = [
-  { label: "📊 대시보드", to: PATH_URL.VERIFICATION.BASE },
-  { label: "⚙️ 품질 규칙 관리", to: PATH_URL.VERIFICATION.RULES },
-  { label: "🔬 검증 실행", to: PATH_URL.VERIFICATION.EXECUTE },
+  { label: "📊 대시보드", to: PATH_URL.MAIN },
+  { label: "⚙️ 품질 규칙 관리", to: PATH_URL.RULES },
+  { label: "🔬 검증 실행", to: PATH_URL.VALIDATION },
 ];
 
 export const VerificationLayout = () => {
@@ -21,7 +21,7 @@ export const VerificationLayout = () => {
       <S.WhiteBoxSectionHeader>
         <PageHeader />
       </S.WhiteBoxSectionHeader>
-      
+
       <S.WhiteBoxSectionNav>
         <S.WhiteBoxSectionNavList>
           {NAV_ITEMS.map((item) => (

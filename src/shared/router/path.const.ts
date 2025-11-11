@@ -1,8 +1,8 @@
 export const PATH_URL = {
-  VERIFICATION: {
-    BASE: "/verification",
-    RULES: `/verification/rules`,
-    EXECUTE: `/verification/execute`,
-  },
-  MISSING_VALUE: "/missing-value",
+  MAIN: "/",
+  DATASET: "/dataset",
+  RULES: "/rules",
+  VALIDATION: "/validation",
+  MANAGEMENT: "/management",
+  RESULTS: "/results",
 } as const;
