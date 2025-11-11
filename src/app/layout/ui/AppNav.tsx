@@ -2,16 +2,16 @@
  * @description 좌측 네비게이션 컴포넌트
  */
 
-import { PATH_URL } from "@/shared";
+// import { PATH_URL } from "@/shared";
 import * as S from "./appNav.styles";
 import { FiHome } from "react-icons/fi";
-import { PiMicroscopeBold } from "react-icons/pi";
-import { SlGraph } from "react-icons/sl";
+// import { PiMicroscopeBold } from "react-icons/pi";
+// import { SlGraph } from "react-icons/sl";
 
 const NAV_ITEMS = [
   { label: "대시보드", to: "/", icon: <FiHome /> },
-  { label: "품질 검증", to: PATH_URL.VERIFICATION.BASE, icon: <PiMicroscopeBold /> },
-  { label: "데이터 결측치", to: PATH_URL.MISSING_VALUE, icon: <SlGraph /> },
+  // { label: "품질 검증", to: PATH_URL.VERIFICATION.BASE, icon: <PiMicroscopeBold /> },
+  // { label: "데이터 결측치", to: PATH_URL.MISSING_VALUE, icon: <SlGraph /> },
 ];
 
 export const AppNav = () => {

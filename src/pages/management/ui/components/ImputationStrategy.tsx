@@ -30,12 +30,30 @@ const methodDescriptions: Record<string, { title: string; description: string; c
       "유사한 샘플들의 값을 기반으로 결측치를 추정합니다. 데이터의 지역적 패턴을 잘 보존하며, 비선형 관계를 포착할 수 있습니다. (정확도: ~88%)",
     color: "#10b981",
   },
+  mice: {
+    title: "🔄 MICE (Multiple Imputation by Chained Equations)",
+    description: "다중 대체 방법으로 여러 개의 완전한 데이터셋을 생성합니다. 불확실성을 고려한 강건한 추정이 가능합니다. (정확도: ~92%)",
+    color: "#8B5CF6",
+  },
+  missforest: {
+    title: "🌲 MissForest",
+    description: "Random Forest 알고리즘을 사용한 비모수적 보간 방법입니다. 복잡한 상호작용과 비선형 관계를 잘 처리합니다. (정확도: ~91%)",
+    color: "#059669",
+  },
+  gain: {
+    title: "🤖 GAIN (Generative Adversarial Imputation)",
+    description: "GAN 기반의 생성 모델로 결측치를 보간합니다. 데이터의 복잡한 분포를 학습하여 현실적인 값을 생성합니다. (정확도: ~94%)",
+    color: "#DC2626",
+  },
+  vae: {
+    title: "🔮 VAE (Variational Autoencoder)",
+    description: "딥러닝 기반의 생성 모델로, 데이터의 잠재 표현을 학습하여 결측치를 추정합니다. 고차원 데이터에 효과적입니다. (정확도: ~93%)",
+    color: "#7C3AED",
+  },
 };
 
 export const ImputationStrategy = () => {
   const [selectedMethod, setSelectedMethod] = useState("mochi");
-  const [threshold, setThreshold] = useState(30);
-  const [quality, setQuality] = useState(85);
 
   const description = methodDescriptions[selectedMethod] || methodDescriptions.mochi;
 
@@ -50,8 +68,7 @@ export const ImputationStrategy = () => {
         <S.FormLabel>
           보간 방법 선택
           <S.Tooltip>
-            ⓘ
-            <S.TooltipText>MOCHI는 멀티오믹스 데이터에 최적화된 AI 보간 모델입니다</S.TooltipText>
+            ⓘ<S.TooltipText>MOCHI는 멀티오믹스 데이터에 최적화된 AI 보간 모델입니다</S.TooltipText>
           </S.Tooltip>
         </S.FormLabel>
         <S.FormSelect value={selectedMethod} onChange={(e) => setSelectedMethod(e.target.value)}>
@@ -71,11 +88,11 @@ export const ImputationStrategy = () => {
       <S.SliderGroup>
         <S.SliderHeader>
           <S.SliderLabel>보간 임계값</S.SliderLabel>
-          <S.SliderValue>{threshold}%</S.SliderValue>
+          <S.SliderValue>30%</S.SliderValue>
         </S.SliderHeader>
         <S.SliderTrack>
-          <S.SliderFill $width={threshold} />
-          <S.SliderThumb $left={threshold} />
+          <S.SliderFill $width={30} />
+          <S.SliderThumb $left={30} />
         </S.SliderTrack>
         <S.SliderHelp>이 비율 이하의 결측만 보간합니다</S.SliderHelp>
       </S.SliderGroup>
@@ -83,11 +100,11 @@ export const ImputationStrategy = () => {
       <S.SliderGroup>
         <S.SliderHeader>
           <S.SliderLabel>품질 기준</S.SliderLabel>
-          <S.SliderValue>{quality}%</S.SliderValue>
+          <S.SliderValue>85%</S.SliderValue>
         </S.SliderHeader>
         <S.SliderTrack>
-          <S.SliderFill $width={quality} />
-          <S.SliderThumb $left={quality} />
+          <S.SliderFill $width={85} />
+          <S.SliderThumb $left={85} />
         </S.SliderTrack>
         <S.SliderHelp>보간 후 최소 품질 점수</S.SliderHelp>
       </S.SliderGroup>
@@ -112,6 +129,3 @@ export const ImputationStrategy = () => {
     </S.SettingCard>
   );
 };
-
-
-
