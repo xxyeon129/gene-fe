@@ -1,0 +1,20 @@
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+pydantic==2.9.2
+python-multipart==0.0.9
+# Python 3.14 호환을 위해 최신 버전 사용 (미리 컴파일된 wheel 사용)
+# 참고: Python 3.14는 매우 최신 버전이므로, 일부 패키지가 아직 완전히 지원하지 않을 수 있습니다
+# 문제가 발생하면 Python 3.12 또는 3.13 사용을 권장합니다
+numpy>=2.0.0
+pandas>=2.2.2
+scikit-learn>=1.5.1
+scipy>=1.13.1
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-dotenv==1.0.1
+
+# ML/AI libraries for future imputation models
+# torch==2.2.0  # Uncomment when needed for deep learning models
+# tensorflow==2.16.1  # Uncomment when needed
+# xgboost==2.1.0  # Uncomment when needed
+
