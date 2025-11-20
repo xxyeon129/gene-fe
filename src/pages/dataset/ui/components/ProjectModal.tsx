@@ -1,24 +1,46 @@
 import { useState } from "react";
 import * as S from "./projectModal.styles";
+import { apiClient } from "@/shared/api";
 
 interface ProjectModalProps {
   onClose: () => void;
+  onProjectCreated?: () => void;
 }
 
-export const ProjectModal = ({ onClose }: ProjectModalProps) => {
+export const ProjectModal = ({ onClose, onProjectCreated }: ProjectModalProps) => {
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
   const [dataTypes, setDataTypes] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleDataTypeChange = (type: string) => {
-    setDataTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
-    );
+    setDataTypes((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]));
   };
 
-  const handleCreate = () => {
-    alert("프로젝트가 생성되었습니다!");
-    onClose();
+  const handleCreate = async () => {
+    if (!projectName.trim()) {
+      setError("프로젝트 이름을 입력해주세요.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      await apiClient.createProject({
+        name: projectName,
+        description: projectDescription,
+        dataType: dataTypes,
+      });
+      alert("프로젝트가 생성되었습니다!");
+      onProjectCreated?.();
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "프로젝트 생성에 실패했습니다.");
+      console.error("Failed to create project:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -31,12 +53,7 @@ export const ProjectModal = ({ onClose }: ProjectModalProps) => {
         <S.ModalBody>
           <S.FormGroup>
             <S.FormLabel>프로젝트 이름</S.FormLabel>
-            <S.FormInput
-              type="text"
-              placeholder="예: 당뇨병 오믹스 연구"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-            />
+            <S.FormInput type="text" placeholder="예: 당뇨병 오믹스 연구" value={projectName} onChange={(e) => setProjectName(e.target.value)} />
           </S.FormGroup>
 
           <S.FormGroup>
@@ -54,11 +71,7 @@ export const ProjectModal = ({ onClose }: ProjectModalProps) => {
             <S.CheckboxGrid>
               {["전사체", "대사체", "단백체", "메틸화"].map((type) => (
                 <S.CheckboxLabel key={type}>
-                  <input
-                    type="checkbox"
-                    checked={dataTypes.includes(type)}
-                    onChange={() => handleDataTypeChange(type)}
-                  />
+                  <input type="checkbox" checked={dataTypes.includes(type)} onChange={() => handleDataTypeChange(type)} />
                   {type}
                 </S.CheckboxLabel>
               ))}
@@ -66,16 +79,20 @@ export const ProjectModal = ({ onClose }: ProjectModalProps) => {
           </S.FormGroup>
         </S.ModalBody>
 
+        {error && (
+          <S.ModalBody>
+            <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>
+          </S.ModalBody>
+        )}
         <S.ModalFooter>
-          <S.Button $variant="secondary" onClick={onClose}>
+          <S.Button $variant="secondary" onClick={onClose} disabled={loading}>
             취소
           </S.Button>
-          <S.Button onClick={handleCreate}>프로젝트 생성</S.Button>
+          <S.Button onClick={handleCreate} disabled={loading}>
+            {loading ? "생성 중..." : "프로젝트 생성"}
+          </S.Button>
         </S.ModalFooter>
       </S.ModalContent>
     </S.Modal>
   );
 };
-
-
-

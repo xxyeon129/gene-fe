@@ -5,10 +5,17 @@ interface ProjectCardProps {
     id: number;
     name: string;
     description: string;
-    tags: string[];
-    samples: number;
+    dataType: string[];
     lastUpdate: string;
-    active: boolean;
+    qualityScore: number;
+    validationStatus: string;
+    sampleCount: number;
+    status: string;
+    sample_accuracy: number;
+
+    DNA_qualityScore: number;
+    RNA_qualityScore: number;
+    Protein_qualityScore: number;
   };
   selected: boolean;
   onClick: () => void;
@@ -22,26 +29,28 @@ const tagColors: Record<string, { bg: string; color: string }> = {
 };
 
 export const ProjectCard = ({ project, selected, onClick }: ProjectCardProps) => {
+  const { name, description, dataType, lastUpdate, sampleCount, status } = project;
+
   return (
     <S.ProjectCard $selected={selected} onClick={onClick}>
-      {project.active && <S.ProjectBadge>활성</S.ProjectBadge>}
-      <S.ProjectName>{project.name}</S.ProjectName>
-      <S.ProjectDescription>{project.description}</S.ProjectDescription>
+      <S.ProjectBadge>{status}</S.ProjectBadge>
+      <S.ProjectName>{name}</S.ProjectName>
+      <S.ProjectDescription>{description}</S.ProjectDescription>
 
       <S.TagsContainer>
-        {project.tags.map((tag) => {
-          const colors = tagColors[tag] || { bg: "#f1f5f9", color: "#475569" };
+        {dataType.map((dataTag) => {
+          const colors = tagColors[dataTag] || { bg: "#f1f5f9", color: "#475569" };
           return (
-            <S.Tag key={tag} $bg={colors.bg} $color={colors.color}>
-              {tag}
+            <S.Tag key={dataTag} $bg={colors.bg} $color={colors.color}>
+              {dataTag}
             </S.Tag>
           );
         })}
       </S.TagsContainer>
 
       <S.ProjectInfo>
-        <span>샘플: {project.samples}</span>
-        <span>업데이트: {project.lastUpdate}</span>
+        <span>샘플: {sampleCount}</span>
+        <span>업데이트: {lastUpdate}</span>
       </S.ProjectInfo>
     </S.ProjectCard>
   );

@@ -73,3 +73,39 @@ export const SkyBlueDescriptionContent = styled.p`
   color: #2193ce;
   margin-top: 0.5rem;
 `;
+
+export const SliderWrapper = styled.div`
+  width: 100%;
+`;
+
+export const SliderInput = styled.input`
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  outline: none;
+  cursor: pointer;
+  transition: background 0.2s ease, opacity 0.2s ease;
+
+  &::-webkit-slider-thumb {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #0ea5e9;
+    border: 3px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(15, 118, 110, 0.35);
+    cursor: pointer;
+  }
+
+  &::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #0ea5e9;
+    border: 3px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(15, 118, 110, 0.35);
+    cursor: pointer;
+  }
+`;

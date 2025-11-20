@@ -10,17 +10,39 @@ from datetime import datetime
 # Project Models
 class ProjectBase(BaseModel):
     name: str
+    data_type: List[str] = Field(..., alias="dataType")
+    quality_score: float = Field(..., alias="qualityScore")
+    validation_status: str = Field(..., alias="validationStatus")
+    last_update: str = Field(..., alias="lastUpdate")
     description: str
     sample_count: int = Field(..., alias="sampleCount")
-    file_count: int = Field(..., alias="fileCount")
-    size: str
     status: str
-    current_status: str = Field(..., alias="currentStatus")
-    created_at: str = Field(..., alias="createdAt")
+    dna_quality_score: Optional[float] = Field(None, alias="DNA_qualityScore")
+    rna_quality_score: Optional[float] = Field(None, alias="RNA_qualityScore")
+    protein_quality_score: Optional[float] = Field(None, alias="Protein_qualityScore")
+    sample_accuracy: Optional[float] = Field(None, alias="sample_accuracy")
+    # file_count: Optional[int] = Field(None, alias="fileCount")
+    # size: Optional[str] = None
+    # current_status: Optional[str] = Field(None, alias="currentStatus")
+    # created_at: Optional[str] = Field(None, alias="createdAt")
 
 
-class ProjectCreate(ProjectBase):
-    pass
+class ProjectCreate(BaseModel):
+    name: str
+    description: str
+    data_type: List[str] = Field(..., alias="dataType")
+    quality_score: float = Field(0.0, alias="qualityScore")
+    validation_status: str = Field("작성중", alias="validationStatus")
+    last_update: str = Field("방금 전", alias="lastUpdate")
+    sample_count: int = Field(0, alias="sampleCount")
+    status: str = "활성"
+    dna_quality_score: Optional[float] = Field(None, alias="DNA_qualityScore")
+    rna_quality_score: Optional[float] = Field(None, alias="RNA_qualityScore")
+    protein_quality_score: Optional[float] = Field(None, alias="Protein_qualityScore")
+    sample_accuracy: Optional[float] = Field(None, alias="sample_accuracy")
+
+    class Config:
+        populate_by_name = True
 
 
 class Project(ProjectBase):

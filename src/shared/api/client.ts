@@ -1,78 +1,100 @@
-/**
- * API Client for backend communication
- */
+import axios, { AxiosHeaders } from "axios";
+import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
 
 class ApiClient {
-  private baseUrl: string;
+  private client: AxiosInstance;
 
   constructor(baseUrl: string = API_BASE_URL) {
-    this.baseUrl = baseUrl;
+    this.client = axios.create({
+      baseURL: baseUrl,
+    });
+
+    this.setupInterceptors();
   }
 
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
-    const url = endpoint.startsWith("http") ? endpoint : `${this.baseUrl}${endpoint}`;
-    
-    const config: RequestInit = {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
+  private setupInterceptors() {
+    this.client.interceptors.request.use(
+      (config) => {
+        const isFormData = config.data instanceof FormData;
+
+        if (!config.headers) {
+          config.headers = new AxiosHeaders();
+        }
+
+        if (config.headers instanceof AxiosHeaders) {
+          if (isFormData) {
+            config.headers.delete("Content-Type");
+          } else if (!config.headers.has("Content-Type")) {
+            config.headers.set("Content-Type", "application/json");
+          }
+        } else if (isFormData) {
+          delete (config.headers as Record<string, string>)["Content-Type"];
+        } else if (!(config.headers as Record<string, string>)["Content-Type"]) {
+          (config.headers as Record<string, string>)["Content-Type"] = "application/json";
+        }
+
+        return config;
       },
+      (error: AxiosError) => Promise.reject(error)
+    );
+
+    this.client.interceptors.response.use(
+      (response: AxiosResponse) => response.data,
+      (error: AxiosError) => {
+        const message = (error.response?.data as { message?: string })?.message || error.message || "API request failed";
+
+        console.error(`API response failed: ${error.config?.url ?? "unknown endpoint"}`, error);
+
+        return Promise.reject(new Error(message));
+      }
+    );
+  }
+
+  private async request<T>(endpoint: string, options: AxiosRequestConfig = {}): Promise<T> {
+    const config: AxiosRequestConfig = {
+      url: endpoint,
+      ...options,
     };
 
-    try {
-      const response = await fetch(url, config);
-      
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: response.statusText }));
-        throw new Error(error.message || `HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error(`API request failed: ${endpoint}`, error);
-      throw error;
-    }
+    return this.client.request<T, T>(config);
   }
 
   // Projects API
   async getProjects() {
-    return this.request("/api/projects");
+    return this.request("/projects");
   }
 
   async getProject(id: number) {
-    return this.request(`/api/projects/${id}`);
+    return this.request(`/projects/${id}`);
   }
 
-  async createProject(data: any) {
-    return this.request("/api/projects", {
+  async createProject(data: Record<string, unknown>) {
+    return this.request("/projects", {
       method: "POST",
-      body: JSON.stringify(data),
+      data,
     });
   }
 
-  async updateProject(id: number, data: any) {
-    return this.request(`/api/projects/${id}`, {
+  async updateProject(id: number, data: Record<string, unknown>) {
+    return this.request(`/projects/${id}`, {
       method: "PUT",
-      body: JSON.stringify(data),
+      data,
     });
   }
 
   async deleteProject(id: number) {
-    return this.request(`/api/projects/${id}`, {
+    return this.request(`/projects/${id}`, {
       method: "DELETE",
     });
   }
 
   // Data API
   async getDataFiles(projectId?: number) {
-    const params = projectId ? `?project_id=${projectId}` : "";
-    return this.request(`/api/data${params}`);
+    return this.request("/data", {
+      params: projectId ? { project_id: projectId } : undefined,
+    });
   }
 
   async uploadFile(file: File, projectId?: number) {
@@ -82,72 +104,67 @@ class ApiClient {
       formData.append("project_id", projectId.toString());
     }
 
-    const url = `${this.baseUrl}/api/data/upload`;
-    const response = await fetch(url, {
+    return this.request("/data/upload", {
       method: "POST",
-      body: formData,
+      data: formData,
     });
-
-    if (!response.ok) {
-      throw new Error(`Upload failed: ${response.statusText}`);
-    }
-
-    return response.json();
   }
 
   // Missing Value API
   async getMissingValueProjects() {
-    return this.request("/api/missing-value/projects");
+    return this.request("/missing-value/projects");
   }
 
   async getMissingValueAnalysis(projectId: number) {
-    return this.request(`/api/missing-value/summary/${projectId}`);
+    return this.request(`/missing-value/summary/${projectId}`);
   }
 
   async getMissingValueSummary(projectId: number) {
-    return this.request(`/api/missing-value/summary/${projectId}/summary`);
+    return this.request(`/missing-value/summary/${projectId}/summary`);
   }
 
   async getMissingValueDistribution(projectId: number) {
-    return this.request(`/api/missing-value/summary/${projectId}/distribution`);
+    return this.request(`/missing-value/summary/${projectId}/distribution`);
   }
 
   // Verification API
   async getVerificationDashboard(projectId?: number) {
-    const params = projectId ? `?project_id=${projectId}` : "";
-    return this.request(`/api/verification/dashboard${params}`);
+    return this.request("/verification/dashboard", {
+      params: projectId ? { project_id: projectId } : undefined,
+    });
   }
 
   async getVerificationStatus(projectId?: number) {
-    const params = projectId ? `?project_id=${projectId}` : "";
-    return this.request(`/api/verification/status${params}`);
+    return this.request("/verification/status", {
+      params: projectId ? { project_id: projectId } : undefined,
+    });
   }
 
   async getVerificationRules(projectId?: number) {
-    const params = projectId ? `?project_id=${projectId}` : "";
-    return this.request(`/api/verification/rules${params}`);
+    return this.request("/verification/rules", {
+      params: projectId ? { project_id: projectId } : undefined,
+    });
   }
 
   // Imputation API
   async getImputationMethods() {
-    return this.request("/api/imputation/methods");
+    return this.request("/imputation/methods");
   }
 
-  async executeImputation(data: any) {
-    return this.request("/api/imputation/execute", {
+  async executeImputation(data: Record<string, unknown>) {
+    return this.request("/imputation/execute", {
       method: "POST",
-      body: JSON.stringify(data),
+      data,
     });
   }
 
   async getImputationStatus(jobId: string) {
-    return this.request(`/api/imputation/status/${jobId}`);
+    return this.request(`/imputation/status/${jobId}`);
   }
 
   async getImputationResults(jobId: string) {
-    return this.request(`/api/imputation/results/${jobId}`);
+    return this.request(`/imputation/results/${jobId}`);
   }
 }
 
 export const apiClient = new ApiClient();
-

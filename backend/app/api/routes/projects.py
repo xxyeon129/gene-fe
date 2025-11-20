@@ -8,56 +8,70 @@ from app.models.schemas import Project, ProjectCreate
 
 router = APIRouter()
 
-# Mock data - 실제로는 데이터베이스에서 가져옴
+# Mock data - TODO: DB에서 가져오기
 MOCK_PROJECTS = [
     {
         "id": 1,
-        "name": "Breast Cancer Analysis",
-        "description": "TCGA BRCA 유방암 멀티오믹스 데이터",
-        "sampleCount": 1226,
-        "fileCount": 3,
-        "size": "2.3 GB",
-        "status": "진행중",
-        "currentStatus": "진행중",
-        "createdAt": "2025-10-14",
+        # 메인 페이지
+        "name": "🧬 암 유전체 프로젝트",
+        "dataType": ["전사체", "대사체"],
+        "qualityScore": 95.8,
+        "validationStatus": "검증완료",
+        "lastUpdate": "10분 전",
+        # 데이터셋 페이지
+        "description": "대규모 암 유전체 데이터 분석",
+        "sampleCount": 450,
+        "status": "활성",
+        # 품질검증 페이지
+        "DNA_qualityScore": 99,
+        "RNA_qualityScore": 80,
+        "Protein_qualityScore": 75,
+        "sample_accuracy": 98.5,
+        # "createdAt": "2025-10-14",
     },
     {
         "id": 2,
-        "name": "Lung Cancer Study",
-        "description": "TCGA LUAD/LUSC 폐암 유전체 분석",
-        "sampleCount": 892,
-        "fileCount": 2,
-        "size": "1.8 GB",
-        "status": "진행중",
-        "currentStatus": "완료",
-        "createdAt": "2025-10-13",
+        # 메인 페이지
+        "name": "🔬 알츠하이머 연구",
+        "dataType": ["메틸화", "전사체"],
+        "qualityScore": 87.2,
+        "validationStatus": "처리중",
+        "lastUpdate": "3시간 전",
+        # 데이터셋 페이지
+        "description": "신경퇴행성 질환 바이오마커 발굴",
+        "sampleCount": 280,
+        "status": "활성",
+        # 품질검증 페이지
+        "DNA_qualityScore": 98,
+        "RNA_qualityScore": 70,
+        "Protein_qualityScore": 65,
+        "sample_accuracy": 100,
+        # "createdAt": "2025-10-14",
     },
+    
     {
         "id": 3,
-        "name": "Pan-Cancer Atlas",
-        "description": "33개 암종 통합 분석 프로젝트",
-        "sampleCount": 10967,
-        "fileCount": 5,
-        "size": "8.7 GB",
-        "status": "진행중",
-        "currentStatus": "대기",
-        "createdAt": "2025-10-12",
-    },
-    {
-        "id": 4,
-        "name": "Glioblastoma Research",
-        "description": "GBM 뇌종양 후성유전학 연구",
-        "sampleCount": 456,
-        "fileCount": 2,
-        "size": "980 MB",
-        "status": "완료",
-        "currentStatus": "완료",
-        "createdAt": "2025-10-10",
+        # 메인 페이지
+        "name": "🧪 심혈관 질환 코호트",
+        "dataType": ["대사체", "전체 오믹스"],
+        "qualityScore": 92.4,
+        "validationStatus": "검증완료",
+        "lastUpdate": "3일 전",
+        # 데이터셋 페이지
+        "description": "다중 오믹스 통합 분석",
+        "sampleCount": 620,
+        "status": "활성",
+        # 품질검증 페이지
+        "DNA_qualityScore": 88,
+        "RNA_qualityScore": 90,
+        "Protein_qualityScore": 95,
+        "sample_accuracy": 99.2,
+        # "createdAt": "2025-10-14",
     },
 ]
 
 
-@router.get("/", response_model=List[Project])
+@router.get("", response_model=List[Project])
 async def get_projects():
     """프로젝트 목록 조회"""
     return MOCK_PROJECTS
@@ -72,13 +86,13 @@ async def get_project(project_id: int):
     return project
 
 
-@router.post("/", response_model=Project)
+@router.post("", response_model=Project)
 async def create_project(project: ProjectCreate):
     """새 프로젝트 생성"""
     new_id = max(p["id"] for p in MOCK_PROJECTS) + 1 if MOCK_PROJECTS else 1
     new_project = {
         "id": new_id,
-        **project.model_dump(by_alias=True)
+        **project.model_dump(by_alias=True),
     }
     MOCK_PROJECTS.append(new_project)
     return new_project

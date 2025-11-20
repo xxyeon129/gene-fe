@@ -1,41 +1,76 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as S from "./projectManage.styles";
 import { ProjectCard } from "./ProjectCard";
 import { ProjectModal } from "./ProjectModal";
+import { apiClient } from "@/shared/api";
 
-const projects = [
-  {
-    id: 1,
-    name: "암 유전체 프로젝트",
-    description: "대규모 암 유전체 데이터 분석",
-    tags: ["전사체", "대사체"],
-    samples: 450,
-    lastUpdate: "2시간 전",
-    active: true,
-  },
-  {
-    id: 2,
-    name: "알츠하이머 연구",
-    description: "신경퇴행성 질환 바이오마커 발굴",
-    tags: ["전사체", "메틸화"],
-    samples: 280,
-    lastUpdate: "1일 전",
-    active: false,
-  },
-  {
-    id: 3,
-    name: "심혈관 질환 코호트",
-    description: "다중 오믹스 통합 분석",
-    tags: ["전체 오믹스"],
-    samples: 620,
-    lastUpdate: "3일 전",
-    active: false,
-  },
-];
+interface Project {
+  id: number;
+  name: string;
+  description: string;
+  tags: string[];
+  samples: number;
+  lastUpdate: string;
+  active: boolean;
+}
 
 export const ProjectManage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<number | null>(1);
+  const [selectedProject, setSelectedProject] = useState<number | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setLoading(true);
+        const data = await apiClient.getProjects();
+        setProjects(data);
+        if (data && data.length > 0) {
+          setSelectedProject(data[0].id);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "프로젝트를 불러오는데 실패했습니다.");
+        console.error("Failed to fetch projects:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
+  const handleProjectCreated = async () => {
+    try {
+      const data = await apiClient.getProjects();
+      setProjects(data);
+    } catch (err) {
+      console.error("Failed to refresh projects:", err);
+    }
+  };
+
+  if (loading) {
+    return (
+      <S.Card>
+        <S.CardHeader>
+          <S.CardTitle>프로젝트 관리</S.CardTitle>
+        </S.CardHeader>
+        <div>로딩 중...</div>
+      </S.Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <S.Card>
+        <S.CardHeader>
+          <S.CardTitle>프로젝트 관리</S.CardTitle>
+        </S.CardHeader>
+        <div>에러: {error}</div>
+      </S.Card>
+    );
+  }
 
   return (
     <>
@@ -57,7 +92,12 @@ export const ProjectManage = () => {
         </S.ProjectGrid>
       </S.Card>
 
-      {isModalOpen && <ProjectModal onClose={() => setIsModalOpen(false)} />}
+      {isModalOpen && (
+        <ProjectModal
+          onClose={() => setIsModalOpen(false)}
+          onProjectCreated={handleProjectCreated}
+        />
+      )}
     </>
   );
 };

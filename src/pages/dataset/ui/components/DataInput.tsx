@@ -1,11 +1,33 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import * as S from "./dataInput.styles";
+import { apiClient } from "@/shared/api";
 
 export const DataInput = () => {
   const [activeTab, setActiveTab] = useState<"api" | "file">("api");
   const [apiUrl, setApiUrl] = useState("");
   const [authType, setAuthType] = useState("API Key");
   const [apiKey, setApiKey] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [projectId, setProjectId] = useState<number | undefined>(undefined);
+
+  const handleFileUpload = async (file: File) => {
+    try {
+      setUploading(true);
+      setUploadError(null);
+      setUploadSuccess(false);
+      await apiClient.uploadFile(file, projectId);
+      setUploadSuccess(true);
+      setTimeout(() => setUploadSuccess(false), 3000);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "파일 업로드에 실패했습니다.");
+      console.error("Failed to upload file:", err);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <S.Card>
@@ -67,12 +89,42 @@ export const DataInput = () => {
 
       {activeTab === "file" && (
         <S.TabContent>
-          <S.UploadArea>
+          <S.UploadArea
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+            }}
+            onDrop={async (e) => {
+              e.preventDefault();
+              const files = Array.from(e.dataTransfer.files);
+              if (files.length > 0) {
+                await handleFileUpload(files[0]);
+              }
+            }}
+          >
             <S.UploadIcon>📁</S.UploadIcon>
             <S.UploadTitle>파일을 드래그하거나 클릭하여 업로드</S.UploadTitle>
             <S.UploadSubtitle>CSV, Excel, TSV, JSON 형식 지원 (최대 500MB)</S.UploadSubtitle>
-            <input type="file" style={{ display: "none" }} multiple accept=".csv,.xlsx,.tsv,.json" />
+            <input
+              ref={fileInputRef}
+              type="file"
+              style={{ display: "none" }}
+              accept=".csv,.xlsx,.tsv,.json"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  await handleFileUpload(file);
+                }
+              }}
+            />
           </S.UploadArea>
+          {uploadError && (
+            <div style={{ color: "red", marginTop: "1rem" }}>에러: {uploadError}</div>
+          )}
+          {uploadSuccess && (
+            <div style={{ color: "green", marginTop: "1rem" }}>파일이 성공적으로 업로드되었습니다!</div>
+          )}
+          {uploading && <div style={{ marginTop: "1rem" }}>업로드 중...</div>}
         </S.TabContent>
       )}
     </S.Card>

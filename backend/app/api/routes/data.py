@@ -31,7 +31,7 @@ MOCK_DATA_FILES = [
 ]
 
 
-@router.get("/", response_model=List[DataFile])
+@router.get("", response_model=List[DataFile])
 async def get_data_files(project_id: Optional[int] = None):
     """데이터 파일 목록 조회"""
     # TODO: project_id로 필터링 기능 추가

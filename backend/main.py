@@ -13,7 +13,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS 설정 - 프론트엔드와 통신을 위해
+# CORS 설정
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -26,7 +26,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# API 라우터 등록
+# API Request Routes 등록
 app.include_router(projects.router, prefix="/api/projects", tags=["projects"])
 app.include_router(data.router, prefix="/api/data", tags=["data"])
 app.include_router(missing_value.router, prefix="/api/missing-value", tags=["missing-value"])

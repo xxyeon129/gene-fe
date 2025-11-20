@@ -2,16 +2,39 @@
  * @description 품질검증 대시보드드 페이지
  */
 
+import { useState, useEffect } from "react";
 import * as S from "./dashboardPage.styles";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { VERIFICATION_CURRENT_STATUS, VERIFICATION_DASHBOARD_SAMPLES } from "./verificationDashboard.const";
+import { apiClient } from "@/shared/api";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const labels = ["10/10", "10/11", "10/12", "10/13", "10/14"];
 
 export const VerificationDashboardPage = () => {
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [projectId, setProjectId] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        setLoading(true);
+        const data = await apiClient.getVerificationDashboard(projectId);
+        setDashboardData(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "대시보드 데이터를 불러오는데 실패했습니다.");
+        console.error("Failed to fetch verification dashboard:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+  }, [projectId]);
   const options = {
     responsive: true,
     plugins: {
@@ -31,8 +54,8 @@ export const VerificationDashboardPage = () => {
   };
 
   const data = {
-    labels,
-    datasets: [
+    labels: dashboardData?.labels || labels,
+    datasets: dashboardData?.datasets || [
       {
         label: "통과",
         data: [230, 250, 270, 285, 300],
@@ -53,6 +76,22 @@ export const VerificationDashboardPage = () => {
       },
     ],
   };
+
+  if (loading) {
+    return (
+      <S.PageArtcile>
+        <div>로딩 중...</div>
+      </S.PageArtcile>
+    );
+  }
+
+  if (error) {
+    return (
+      <S.PageArtcile>
+        <div>에러: {error}</div>
+      </S.PageArtcile>
+    );
+  }
 
   return (
     <S.PageArtcile>
