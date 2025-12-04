@@ -2,88 +2,85 @@
 Data management API routes
 """
 
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from typing import List, Optional
+from sqlalchemy.orm import Session
+from datetime import datetime
 from app.models.schemas import DataFile, DataFileCreate
+from app.models.base import DataFile as DataFileModel
+from app.db.session import get_db
 
 router = APIRouter()
 
-# Mock data - 실제로는 데이터베이스에서 가져옴
-MOCK_DATA_FILES = [
-    {
-        "id": 101,
-        "name": "BRCA_RNA_seq.tsv",
-        "size": "1.2 GB",
-        "createdAt": "2025-10-10",
-    },
-    {
-        "id": 102,
-        "name": "BRCA_DNA_methylation.csv",
-        "size": "856 MB",
-        "createdAt": "2025-10-11",
-    },
-    {
-        "id": 103,
-        "name": "BRCA_protein.tsv",
-        "size": "234 MB",
-        "createdAt": "2025-10-12",
-    },
-]
+
+def datafile_to_dict(datafile: DataFileModel) -> dict:
+    """SQLAlchemy 모델을 딕셔너리로 변환"""
+    return {
+        "id": datafile.id,
+        "name": datafile.name,
+        "size": datafile.size,
+        "createdAt": datafile.created_at.strftime("%Y-%m-%d") if datafile.created_at else None,
+    }
 
 
 @router.get("", response_model=List[DataFile])
-async def get_data_files(project_id: Optional[int] = None):
+async def get_data_files(project_id: Optional[int] = None, db: Session = Depends(get_db)):
     """데이터 파일 목록 조회"""
-    # TODO: project_id로 필터링 기능 추가
-    return MOCK_DATA_FILES
+    query = db.query(DataFileModel)
+    if project_id:
+        query = query.filter(DataFileModel.project_id == project_id)
+    
+    data_files = query.all()
+    return [datafile_to_dict(df) for df in data_files]
 
 
 @router.get("/{file_id}", response_model=DataFile)
-async def get_data_file(file_id: int):
+async def get_data_file(file_id: int, db: Session = Depends(get_db)):
     """특정 데이터 파일 조회"""
-    file = next((f for f in MOCK_DATA_FILES if f["id"] == file_id), None)
-    if not file:
+    data_file = db.query(DataFileModel).filter(DataFileModel.id == file_id).first()
+    if not data_file:
         raise HTTPException(status_code=404, detail="Data file not found")
-    return file
+    return datafile_to_dict(data_file)
 
 
 @router.post("/upload")
 async def upload_data_file(
     file: UploadFile = File(...),
-    project_id: Optional[int] = None
+    project_id: Optional[int] = None,
+    db: Session = Depends(get_db)
 ):
     """데이터 파일 업로드"""
-    # TODO: 실제 파일 저장 로직 구현
-    # 현재는 mock 데이터로 응답
-    from datetime import datetime
-    
-    # 파일 크기 계산 (실제로는 파일을 읽어서 계산)
+    # 파일 크기 계산
     content = await file.read()
     file_size = len(content)
     size_str = f"{file_size / (1024**3):.2f} GB" if file_size > 1024**3 else f"{file_size / (1024**2):.2f} MB"
     
-    new_id = max(f["id"] for f in MOCK_DATA_FILES) + 1 if MOCK_DATA_FILES else 1
-    new_file = {
-        "id": new_id,
-        "name": file.filename or "uploaded_file",
-        "size": size_str,
-        "createdAt": datetime.now().strftime("%Y-%m-%d"),
-    }
-    MOCK_DATA_FILES.append(new_file)
+    # DB에 파일 정보 저장
+    db_file = DataFileModel(
+        project_id=project_id or 1,  # 기본 프로젝트 ID
+        name=file.filename or "uploaded_file",
+        size=size_str,
+        file_path=None,  # TODO: 실제 파일 저장 경로
+    )
+    
+    db.add(db_file)
+    db.commit()
+    db.refresh(db_file)
     
     return {
         "message": "File uploaded successfully",
-        "file": new_file
+        "file": datafile_to_dict(db_file)
     }
 
 
 @router.delete("/{file_id}")
-async def delete_data_file(file_id: int):
+async def delete_data_file(file_id: int, db: Session = Depends(get_db)):
     """데이터 파일 삭제"""
-    index = next((i for i, f in enumerate(MOCK_DATA_FILES) if f["id"] == file_id), None)
-    if index is None:
+    data_file = db.query(DataFileModel).filter(DataFileModel.id == file_id).first()
+    if not data_file:
         raise HTTPException(status_code=404, detail="Data file not found")
     
-    MOCK_DATA_FILES.pop(index)
+    db.delete(data_file)
+    db.commit()
     return {"message": "Data file deleted successfully"}
 

@@ -10,6 +10,10 @@ from typing import Dict, Any, Optional
 from sklearn.impute import SimpleImputer, KNNImputer
 from sklearn.ensemble import RandomForestRegressor
 import logging
+import tempfile
+import json
+
+from app.services.ml_model_client import MLModelClient
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +23,7 @@ class ImputationService:
     
     def __init__(self):
         self.jobs = {}  # 실제로는 Redis나 DB 사용 권장
+        self.ml_client = MLModelClient()  # 원격 ML 모델 클라이언트
     
     def run_imputation(
         self,
@@ -91,20 +96,53 @@ class ImputationService:
         MOCHI: Multi-Omics Complete Harmonized Imputation
         멀티오믹스 데이터에 최적화된 AI 보간 모델
         
-        TODO: 실제 ML 모델 구현
-        - 딥러닝 모델 로드
-        - 멀티오믹스 데이터 통합 처리
-        - 교차 검증 수행
+        원격 서버의 ML 모델을 SSH를 통해 호출하여 보간 수행
         """
-        # Mock implementation
-        # 실제로는 학습된 모델을 사용하여 보간 수행
-        return {
-            "method": "mochi",
-            "imputed_samples": 1226,
-            "imputed_features": 4523,
-            "quality_score": 97.3,
-            "accuracy": "97.3%"
-        }
+        try:
+            # 프로젝트 데이터 로드 (실제 구현 필요)
+            # data = self._load_project_data(project_id)
+            
+            # 원격 모델에 전송할 입력 데이터 준비
+            input_data = {
+                "project_id": project_id,
+                "threshold": threshold,
+                "quality_threshold": quality_threshold,
+                "options": options or {},
+                # "data": data.to_dict() if isinstance(data, pd.DataFrame) else data
+            }
+            
+            # 원격 모델 실행
+            # 모델 이름은 실제 서버의 모델 파일명에 맞게 수정 필요
+            model_name = options.get("model_name", "mochi_model.py") if options else "mochi_model.py"
+            
+            logger.info(f"Calling remote ML model: {model_name}")
+            result = self.ml_client.execute_model(
+                model_name=model_name,
+                input_data=input_data
+            )
+            
+            # 결과 포맷팅
+            return {
+                "method": "mochi",
+                "imputed_samples": result.get("imputed_samples", 0),
+                "imputed_features": result.get("imputed_features", 0),
+                "quality_score": result.get("quality_score", 0.0),
+                "accuracy": f"{result.get('quality_score', 0.0):.1f}%",
+                "remote_result": result
+            }
+            
+        except Exception as e:
+            logger.error(f"MOCHI imputation failed: {str(e)}")
+            # 원격 모델 호출 실패 시 fallback (선택사항)
+            logger.warning("Falling back to mock implementation")
+            return {
+                "method": "mochi",
+                "imputed_samples": 1226,
+                "imputed_features": 4523,
+                "quality_score": 97.3,
+                "accuracy": "97.3%",
+                "warning": f"Remote model unavailable, using mock: {str(e)}"
+            }
     
     def _mean_imputation(
         self,

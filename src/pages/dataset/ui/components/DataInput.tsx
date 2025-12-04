@@ -56,12 +56,7 @@ export const DataInput = () => {
 
           <S.FormGroup>
             <S.FormLabel>API Endpoint URL</S.FormLabel>
-            <S.FormInput
-              type="text"
-              placeholder="https://api.example.com/data"
-              value={apiUrl}
-              onChange={(e) => setApiUrl(e.target.value)}
-            />
+            <S.FormInput type="text" placeholder="https://api.example.com/data" value={apiUrl} onChange={(e) => setApiUrl(e.target.value)} />
           </S.FormGroup>
 
           <S.FormGroup>
@@ -75,12 +70,7 @@ export const DataInput = () => {
 
           <S.FormGroup>
             <S.FormLabel>API Key</S.FormLabel>
-            <S.FormInput
-              type="password"
-              placeholder="API 키를 입력하세요"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-            />
+            <S.FormInput type="password" placeholder="API 키를 입력하세요" value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
           </S.FormGroup>
 
           <S.Button>연결 테스트</S.Button>
@@ -118,18 +108,11 @@ export const DataInput = () => {
               }}
             />
           </S.UploadArea>
-          {uploadError && (
-            <div style={{ color: "red", marginTop: "1rem" }}>에러: {uploadError}</div>
-          )}
-          {uploadSuccess && (
-            <div style={{ color: "green", marginTop: "1rem" }}>파일이 성공적으로 업로드되었습니다!</div>
-          )}
+          {uploadError && <div style={{ color: "red", marginTop: "1rem" }}>에러: {uploadError}</div>}
+          {uploadSuccess && <div style={{ color: "green", marginTop: "1rem" }}>파일이 성공적으로 업로드되었습니다!</div>}
           {uploading && <div style={{ marginTop: "1rem" }}>업로드 중...</div>}
         </S.TabContent>
       )}
     </S.Card>
   );
 };
-
-
-

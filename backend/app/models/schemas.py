@@ -52,6 +52,17 @@ class Project(ProjectBase):
         populate_by_name = True
 
 
+class ProjectBulkUploadResponse(BaseModel):
+    message: str
+    created_count: int = Field(..., alias="createdCount")
+    total_rows: int = Field(..., alias="totalRows")
+    projects: List[Project]
+    errors: Optional[List[str]] = None
+
+    class Config:
+        populate_by_name = True
+
+
 # Data Models
 class DataFileBase(BaseModel):
     name: str

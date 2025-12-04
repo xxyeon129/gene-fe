@@ -104,7 +104,7 @@ class ApiClient {
       formData.append("project_id", projectId.toString());
     }
 
-    return this.request("/data/upload", {
+    return this.request("/projects/upload-csv", {
       method: "POST",
       data: formData,
     });

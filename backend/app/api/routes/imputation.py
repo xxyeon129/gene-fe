@@ -13,9 +13,11 @@ from app.models.schemas import (
     ImputationResponse
 )
 from app.services.imputation_service import ImputationService
+from app.services.ml_model_client import MLModelClient
 
 router = APIRouter()
 imputation_service = ImputationService()
+ml_client = MLModelClient()
 
 # Mock imputation methods
 MOCK_IMPUTATION_METHODS = [
@@ -63,7 +65,7 @@ MOCK_IMPUTATION_METHODS = [
     },
 ]
 
-# Job status tracking (실제로는 Redis나 DB 사용 권장)
+
 imputation_jobs = {}
 
 
@@ -137,4 +139,45 @@ async def get_imputation_results(job_id: str):
             "output_file": f"imputed_data_{job_id}.csv"
         }
     }
+
+
+@router.get("/ml-model/connection-test")
+async def test_ml_model_connection():
+    """ML 모델 서버 연결 테스트"""
+    try:
+        is_connected = ml_client.check_connection()
+        if is_connected:
+            return {
+                "status": "success",
+                "message": "Successfully connected to ML model server",
+                "connected": True
+            }
+        else:
+            return {
+                "status": "failed",
+                "message": "Failed to connect to ML model server",
+                "connected": False
+            }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Connection test failed: {str(e)}"
+        )
+
+
+@router.get("/ml-model/list")
+async def list_ml_models():
+    """원격 서버의 ML 모델 목록 조회"""
+    try:
+        models = ml_client.list_models()
+        return {
+            "status": "success",
+            "models": models,
+            "count": len(models)
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to list models: {str(e)}"
+        )
 

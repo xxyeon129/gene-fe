@@ -5,7 +5,7 @@ Main entry point for the API server
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import projects, data, missing_value, verification, imputation
+from app.api.routes import projects, data, missing_value, verification, imputation, dashboard
 
 app = FastAPI(
     title="GENE-Q API",
@@ -32,6 +32,7 @@ app.include_router(data.router, prefix="/api/data", tags=["data"])
 app.include_router(missing_value.router, prefix="/api/missing-value", tags=["missing-value"])
 app.include_router(verification.router, prefix="/api/verification", tags=["verification"])
 app.include_router(imputation.router, prefix="/api/imputation", tags=["imputation"])
+app.include_router(dashboard.router, prefix="/api/dashboard", tags=["dashboard"])
 
 
 @app.get("/")
