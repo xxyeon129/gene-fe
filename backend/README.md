@@ -257,28 +257,6 @@ MYSQL_PASSWORD=Mysql1234
 MYSQL_DB=data_qc
 MYSQL_ECHO=False
 
-# ML 모델 서버 설정
-ML_SERVER_JUMP_HOST=210.102.178.234
-ML_SERVER_JUMP_PORT=22
-ML_SERVER_JUMP_USER=humandeep
-ML_SERVER_JUMP_PASSWORD=humandeep1234
-
-ML_SERVER_FINAL_HOST=192.9.203.83
-ML_SERVER_FINAL_USER=humandeep
-ML_SERVER_FINAL_PASSWORD=humandeep1234
-
-ML_MODEL_PATH=/home/humandeep/nmf
-SSH_TIMEOUT=30
-
 # 로깅 레벨
 LOG_LEVEL=INFO
 ```
-
-## 향후 확장 계획
-
-- [x] MySQL 데이터베이스 연동
-- [ ] 실제 ML 모델 통합
-- [ ] 파일 저장소 연동 (S3, 로컬 스토리지)
-- [ ] 인증/인가 시스템
-- [ ] 작업 큐 시스템 (Celery, Redis)
-- [ ] 실시간 작업 상태 업데이트 (WebSocket)
