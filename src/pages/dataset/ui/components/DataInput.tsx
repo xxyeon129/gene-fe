@@ -2,7 +2,11 @@ import { useState, useRef } from "react";
 import * as S from "./dataInput.styles";
 import { apiClient } from "@/shared/api";
 
-export const DataInput = () => {
+interface DataInputProps {
+  onFileUploaded?: () => void;
+}
+
+export const DataInput = ({ onFileUploaded }: DataInputProps) => {
   const [activeTab, setActiveTab] = useState<"api" | "file">("api");
   const [apiUrl, setApiUrl] = useState("");
   const [authType, setAuthType] = useState("API Key");
@@ -11,16 +15,19 @@ export const DataInput = () => {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [projectId, setProjectId] = useState<number | undefined>(undefined);
 
   const handleFileUpload = async (file: File) => {
     try {
       setUploading(true);
       setUploadError(null);
       setUploadSuccess(false);
-      await apiClient.uploadFile(file, projectId);
+      await apiClient.uploadFile(file);
       setUploadSuccess(true);
       setTimeout(() => setUploadSuccess(false), 3000);
+      // 파일 업로드 성공 시 프로젝트 목록 갱신
+      if (onFileUploaded) {
+        onFileUploaded();
+      }
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "파일 업로드에 실패했습니다.");
       console.error("Failed to upload file:", err);

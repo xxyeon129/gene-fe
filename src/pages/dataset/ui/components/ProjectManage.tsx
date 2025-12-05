@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import * as S from "./projectManage.styles";
 import { ProjectCard } from "./ProjectCard";
 import { ProjectModal } from "./ProjectModal";
@@ -8,13 +8,23 @@ interface Project {
   id: number;
   name: string;
   description: string;
-  tags: string[];
-  samples: number;
+  dataType: string[];
   lastUpdate: string;
-  active: boolean;
+  qualityScore: number;
+  validationStatus: string;
+  sampleCount: number;
+  status: string;
+  sample_accuracy: number;
+  DNA_qualityScore: number;
+  RNA_qualityScore: number;
+  Protein_qualityScore: number;
 }
 
-export const ProjectManage = () => {
+export interface ProjectManageRef {
+  refreshProjects: () => Promise<void>;
+}
+
+export const ProjectManage = forwardRef<ProjectManageRef>((_props, ref) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<number | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -25,7 +35,7 @@ export const ProjectManage = () => {
     const fetchProjects = async () => {
       try {
         setLoading(true);
-        const data = await apiClient.getProjects();
+        const data = (await apiClient.getProjects()) as Project[];
         setProjects(data);
         if (data && data.length > 0) {
           setSelectedProject(data[0].id);
@@ -43,12 +53,17 @@ export const ProjectManage = () => {
 
   const handleProjectCreated = async () => {
     try {
-      const data = await apiClient.getProjects();
+      const data = (await apiClient.getProjects()) as Project[];
       setProjects(data);
     } catch (err) {
       console.error("Failed to refresh projects:", err);
     }
   };
+
+  // 외부에서 프로젝트 목록을 새로고침할 수 있도록 ref 노출
+  useImperativeHandle(ref, () => ({
+    refreshProjects: handleProjectCreated,
+  }));
 
   if (loading) {
     return (
@@ -92,15 +107,9 @@ export const ProjectManage = () => {
         </S.ProjectGrid>
       </S.Card>
 
-      {isModalOpen && (
-        <ProjectModal
-          onClose={() => setIsModalOpen(false)}
-          onProjectCreated={handleProjectCreated}
-        />
-      )}
+      {isModalOpen && <ProjectModal onClose={() => setIsModalOpen(false)} onProjectCreated={handleProjectCreated} />}
     </>
   );
-};
+});
 
-
-
+ProjectManage.displayName = "ProjectManage";

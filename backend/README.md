@@ -6,9 +6,6 @@ FastAPI 기반 백엔드 서버로, GENE-Q 프론트엔드와 통신하며 데�
 
 - 프로젝트 관리 API
 - 데이터 파일 업로드/관리 API
-- 결측치 분석 및 보간 API
-- 검증 규칙 관리 API
-- ML 모델 기반 결측치 보간 (확장 가능)
 
 ## MySQL 데이터베이스 설정
 
@@ -41,6 +38,156 @@ mysql -u root -p
 
 ```sql
 CREATE DATABASE data_qc CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- 기존 테이블이 있다면 삭제 (선택사항)
+-- DROP TABLE IF EXISTS imputation_jobs;
+-- DROP TABLE IF EXISTS verification_status;
+-- DROP TABLE IF EXISTS verification_rules;
+-- DROP TABLE IF EXISTS missing_values;
+-- DROP TABLE IF EXISTS data_files;
+-- DROP TABLE IF EXISTS projects;
+
+-- 1. projects 테이블
+CREATE TABLE IF NOT EXISTS projects (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    data_type JSON NOT NULL,
+    quality_score FLOAT DEFAULT 0.0,
+    validation_status VARCHAR(50) DEFAULT '작성중',
+    last_update VARCHAR(100) DEFAULT '방금 전',
+    sample_count INT DEFAULT 0,
+    status VARCHAR(50) DEFAULT '활성',
+    dna_quality_score FLOAT,
+    rna_quality_score FLOAT,
+    protein_quality_score FLOAT,
+    sample_accuracy FLOAT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_name (name),
+    INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 2. data_files 테이블
+CREATE TABLE IF NOT EXISTS data_files (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    size VARCHAR(50),
+    file_path VARCHAR(500),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    INDEX idx_project (project_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 3. missing_values 테이블
+CREATE TABLE IF NOT EXISTS missing_values (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    total_missing_rate FLOAT DEFAULT 0.0,
+    missing_sample_count INT DEFAULT 0,
+    missing_gene_count INT DEFAULT 0,
+    total_cells INT DEFAULT 0,
+    distribution_data JSON,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    INDEX idx_project (project_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 4. verification_rules 테이블
+CREATE TABLE IF NOT EXISTS verification_rules (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT,
+    label VARCHAR(255) NOT NULL,
+    status VARCHAR(20) DEFAULT 'active',
+    category VARCHAR(50) NOT NULL,
+    metric VARCHAR(100) NOT NULL,
+    `condition` VARCHAR(10) NOT NULL,
+    threshold INT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    INDEX idx_project (project_id),
+    INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 5. verification_status 테이블
+CREATE TABLE IF NOT EXISTS verification_status (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    label VARCHAR(100) NOT NULL,
+    score INT NOT NULL,
+    standard INT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    INDEX idx_project (project_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 6. imputation_jobs 테이블
+CREATE TABLE IF NOT EXISTS imputation_jobs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    job_id VARCHAR(100) UNIQUE NOT NULL,
+    project_id INT NOT NULL,
+    method VARCHAR(50) NOT NULL,
+    threshold FLOAT DEFAULT 30.0,
+    quality_threshold FLOAT DEFAULT 85.0,
+    options JSON,
+    status VARCHAR(50) DEFAULT 'processing',
+    progress FLOAT DEFAULT 0.0,
+    imputed_samples INT,
+    imputed_features INT,
+    quality_score FLOAT,
+    output_file VARCHAR(500),
+    error_message TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    completed_at DATETIME,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    INDEX idx_job_id (job_id),
+    INDEX idx_project (project_id),
+    INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 샘플 데이터 삽입
+INSERT INTO projects (id, name, description, data_type, quality_score, validation_status, last_update, sample_count, status, dna_quality_score, rna_quality_score, protein_quality_score, sample_accuracy)
+VALUES
+(1, 'SAMPLE 🧬 암 유전체 프로젝트', '대규모 암 유전체 데이터 분석', '["전사체", "대사체"]', 95.8, '검증완료', '10분 전', 450, '활성', 99.0, 80.0, 75.0, 98.5),
+(2, 'SAMPLE 🔬 알츠하이머 연구', '신경퇴행성 질환 바이오마커 발굴', '["메틸화", "전사체"]', 87.2, '처리중', '3시간 전', 280, '활성', 98.0, 70.0, 65.0, 100.0),
+(3, 'SAMPLE 🧪 심혈관 질환 코호트', '다중 오믹스 통합 분석', '["대사체", "전체 오믹스"]', 92.4, '검증완료', '3일 전', 620, '활성', 88.0, 90.0, 95.0, 99.2);
+
+-- 데이터 파일 샘플
+INSERT INTO data_files (id, project_id, name, size)
+VALUES
+(101, 1, 'BRCA_RNA_seq.tsv', '1.2 GB'),
+(102, 1, 'BRCA_DNA_methylation.csv', '856 MB'),
+(103, 1, 'BRCA_protein.tsv', '234 MB');
+
+-- 결측치 데이터 샘플
+INSERT INTO missing_values (project_id, total_missing_rate, missing_sample_count, missing_gene_count, total_cells, distribution_data)
+VALUES
+(1, 18.7, 156, 4523, 13876348, '{"ranges": [{"range": "0-10%", "sampleCount": 645, "geneCount": 42135}, {"range": "10-20%", "sampleCount": 289, "geneCount": 12458}, {"range": "20-30%", "sampleCount": 136, "geneCount": 3867}, {"range": "30-50%", "sampleCount": 98, "geneCount": 1845}, {"range": "50%+", "sampleCount": 58, "geneCount": 678}]}'),
+(2, 12.3, 98, 2890, 8920000, '{"ranges": [{"range": "0-10%", "sampleCount": 500, "geneCount": 35000}, {"range": "10-20%", "sampleCount": 200, "geneCount": 8500}, {"range": "20-30%", "sampleCount": 100, "geneCount": 2800}, {"range": "30-50%", "sampleCount": 60, "geneCount": 1200}, {"range": "50%+", "sampleCount": 32, "geneCount": 390}]}'),
+(3, 25.6, 280, 6800, 54200000, '{"ranges": [{"range": "0-10%", "sampleCount": 800, "geneCount": 50000}, {"range": "10-20%", "sampleCount": 400, "geneCount": 18000}, {"range": "20-30%", "sampleCount": 200, "geneCount": 5500}, {"range": "30-50%", "sampleCount": 150, "geneCount": 2800}, {"range": "50%+", "sampleCount": 70, "geneCount": 1000}]}');
+
+-- 검증 규칙 샘플 (전역 규칙)
+INSERT INTO verification_rules (project_id, label, status, category, metric, `condition`, threshold)
+VALUES
+(NULL, '리드 정렬성', 'active', '정렬성', 'read_mapping', '>=', 90),
+(NULL, '위양성 SNP calls', 'active', '정렬성', 'snp_calls', '<=', 5),
+(NULL, '동일 준비 동일 LC-MS', 'active', '정밀성', 'consistency', '>=', 85),
+(NULL, '기기 안정성', 'active', '완전성', 'batch_drift', '<=', 10);
+
+-- 검증 상태 샘플
+INSERT INTO verification_status (project_id, label, score, standard)
+VALUES
+(1, '정렬성', 92, 90),
+(1, '정밀성', 88, 85),
+(1, '완전성', 95, 90),
+(1, '타당성', 87, 85),
+(1, '일치성', 91, 88);
+
 EXIT;
 ```
 
@@ -140,13 +287,6 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 
 서버는 기본적으로 `http://localhost:8000`에서 실행됩니다.
 
-## API 문서
-
-서버 실행 후 다음 URL에서 자동 생성된 API 문서를 확인할 수 있습니다:
-
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
-
 ## API 엔드포인트
 
 ### 프로젝트 관리
@@ -208,20 +348,6 @@ backend/
 │   └── utils/               # 유틸리티 함수
 ```
 
-## ML 모델 통합
-
-`app/services/imputation_service.py`에서 다양한 ML 기반 보간 방법을 구현할 수 있습니다:
-
-- **MOCHI**: 멀티오믹스 데이터에 최적화된 AI 보간 모델 (추천)
-- **Mean/Median**: 통계적 방법
-- **KNN**: K-Nearest Neighbors
-- **MICE**: Multiple Imputation by Chained Equations
-- **MissForest**: Random Forest 기반
-- **GAIN**: Generative Adversarial Imputation Network
-- **VAE**: Variational Autoencoder
-
-각 방법은 확장 가능한 구조로 설계되어 있으며, 실제 ML 모델을 통합할 수 있습니다.
-
 ## 데이터베이스 구조
 
 ### 주요 테이블
@@ -247,6 +373,7 @@ backend/
 ## 환경 변수
 
 `.env` 파일을 생성하여 환경 변수를 설정할 수 있습니다:
+(`.env.example` 참고)
 
 ```env
 # MySQL 데이터베이스 설정
