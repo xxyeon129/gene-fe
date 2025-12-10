@@ -36,7 +36,7 @@ export const QualityMetrics = ({ validationResult }: QualityMetricsProps) => {
   const methylFile = getFileMetric("methy");
 
   const metrics = [
-    rnaFile && {
+    ...(rnaFile ? [{
       icon: "🧪",
       title: "RNA 완전성",
       value: `${(100 - rnaFile.nan_percentage).toFixed(1)}%`,
@@ -44,8 +44,8 @@ export const QualityMetrics = ({ validationResult }: QualityMetricsProps) => {
       missingRate: `${rnaFile.nan_percentage}%`,
       status: rnaFile.nan_percentage < 10 ? "우수" : rnaFile.nan_percentage < 30 ? "양호" : "주의",
       iconBg: "#fef3c7",
-    },
-    proteinFile && {
+    }] : []),
+    ...(proteinFile ? [{
       icon: "🔬",
       title: "Protein 완전성",
       value: `${(100 - proteinFile.nan_percentage).toFixed(1)}%`,
@@ -53,8 +53,8 @@ export const QualityMetrics = ({ validationResult }: QualityMetricsProps) => {
       missingRate: `${proteinFile.nan_percentage}%`,
       status: proteinFile.nan_percentage < 10 ? "우수" : proteinFile.nan_percentage < 30 ? "양호" : "주의",
       iconBg: "#ede9fe",
-    },
-    methylFile && {
+    }] : []),
+    ...(methylFile ? [{
       icon: "🧬",
       title: "Methyl 완전성",
       value: `${(100 - methylFile.nan_percentage).toFixed(1)}%`,
@@ -62,7 +62,7 @@ export const QualityMetrics = ({ validationResult }: QualityMetricsProps) => {
       missingRate: `${methylFile.nan_percentage}%`,
       status: methylFile.nan_percentage < 10 ? "우수" : methylFile.nan_percentage < 30 ? "양호" : "주의",
       iconBg: "#dbeafe",
-    },
+    }] : []),
     {
       icon: "✅",
       title: "전체 검증 통과",
@@ -72,7 +72,7 @@ export const QualityMetrics = ({ validationResult }: QualityMetricsProps) => {
       status: validationResult.all_passed ? "통과" : "실패",
       iconBg: "#d1fae5",
     },
-  ].filter(Boolean);
+  ];
 
   return (
     <S.MetricsGrid>
