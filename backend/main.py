@@ -5,7 +5,7 @@ Main entry point for the API server
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import projects, data, missing_value, verification, imputation, dashboard
+from app.api.routes import projects, data, missing_value, verification, imputation, dashboard, validation
 
 app = FastAPI(
     title="GENE-Q API",
@@ -19,6 +19,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "http://192.9.203.83:3000",  # 네트워크 IP 추가
         "https://gene-fe.vercel.app"
     ],
     allow_credentials=True,
@@ -33,6 +34,7 @@ app.include_router(missing_value.router, prefix="/api/missing-value", tags=["mis
 app.include_router(verification.router, prefix="/api/verification", tags=["verification"])
 app.include_router(imputation.router, prefix="/api/imputation", tags=["imputation"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["dashboard"])
+app.include_router(validation.router, prefix="/api/validation", tags=["validation"])
 
 
 @app.get("/")

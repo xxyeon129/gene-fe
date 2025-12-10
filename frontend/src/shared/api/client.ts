@@ -1,7 +1,7 @@
 import axios, { AxiosHeaders } from "axios";
 import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8005/api";
 
 class ApiClient {
   private client: AxiosInstance;
@@ -61,6 +61,11 @@ class ApiClient {
     return this.client.request<T, T>(config);
   }
 
+  // Dashboard API
+  async getDashboardStats() {
+    return this.request("/dashboard/stats");
+  }
+
   // Projects API
   async getProjects() {
     return this.request("/projects");
@@ -100,9 +105,20 @@ class ApiClient {
   async uploadFile(file: File, projectId?: number) {
     const formData = new FormData();
     formData.append("file", file);
-    if (projectId) {
-      formData.append("project_id", projectId.toString());
-    }
+
+    const url = projectId
+      ? `/data/upload?project_id=${projectId}`
+      : "/data/upload";
+
+    return this.request(url, {
+      method: "POST",
+      data: formData,
+    });
+  }
+
+  async uploadProjectsCSV(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
 
     return this.request("/projects/upload-csv", {
       method: "POST",
@@ -164,6 +180,45 @@ class ApiClient {
 
   async getImputationResults(jobId: string) {
     return this.request(`/imputation/results/${jobId}`);
+  }
+
+  async executeMultiOmicsImputation(projectId: number, threshold?: number, qualityThreshold?: number) {
+    const params = new URLSearchParams({ project_id: projectId.toString() });
+    if (threshold !== undefined) {
+      params.append("threshold", threshold.toString());
+    }
+    if (qualityThreshold !== undefined) {
+      params.append("quality_threshold", qualityThreshold.toString());
+    }
+    return this.request(`/imputation/execute-multiomics?${params.toString()}`, {
+      method: "POST",
+    });
+  }
+
+  // Validation API
+  async executeValidation(projectId: number) {
+    return this.request(`/validation/execute?project_id=${projectId}`, {
+      method: "POST",
+    });
+  }
+
+  async getValidationStatus(jobId: string) {
+    return this.request(`/validation/status/${jobId}`);
+  }
+
+  async downloadValidationReport(projectId: number) {
+    return this.request(`/validation/download-report/${projectId}`);
+  }
+
+  async saveValidationRules(projectId: number, rules: any) {
+    return this.request(`/validation/rules/${projectId}`, {
+      method: "POST",
+      data: rules,
+    });
+  }
+
+  async getValidationRules(projectId: number) {
+    return this.request(`/validation/rules/${projectId}`);
   }
 }
 

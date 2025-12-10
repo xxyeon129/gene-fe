@@ -1,14 +1,13 @@
 import styled from "styled-components";
 
 export const ChartContainer = styled.div`
-  height: 300px;
-  background: #f9fafb;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  min-height: 300px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   color: #9ca3af;
   margin: 20px 0;
+  overflow: hidden;
 `;
 
 

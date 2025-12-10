@@ -27,6 +27,7 @@ class Project(Base):
     # 품질 점수들
     dna_quality_score = Column(Float, nullable=True)
     rna_quality_score = Column(Float, nullable=True)
+    methyl_quality_score = Column(Float, nullable=True)
     protein_quality_score = Column(Float, nullable=True)
     sample_accuracy = Column(Float, nullable=True)
     

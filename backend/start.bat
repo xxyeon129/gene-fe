@@ -12,6 +12,6 @@ if exist venv\Scripts\activate.bat (
 )
 
 REM Start server
-echo Starting GENE-Q Backend API Server...
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+echo Starting GENE-Q Backend API Server on port 8005...
+uvicorn main:app --reload --host 0.0.0.0 --port 8005
 

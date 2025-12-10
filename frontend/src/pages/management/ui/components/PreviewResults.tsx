@@ -1,6 +1,27 @@
 import * as S from "./previewResults.styles";
 
-const previewItems = [
+interface ImputationResult {
+  jobId: string;
+  status: string;
+  results?: {
+    rna_missing_imputed: number;
+    protein_missing_imputed: number;
+    methyl_missing_imputed: number;
+    total_samples: number;
+    output_files: {
+      rna: string;
+      protein: string;
+      methyl: string;
+    };
+  };
+}
+
+interface PreviewResultsProps {
+  imputationResult?: ImputationResult | null;
+  isExecuting?: boolean;
+}
+
+const defaultPreviewItems = [
   {
     icon: "📉",
     label: "결측률 개선",
@@ -23,7 +44,7 @@ const previewItems = [
     icon: "🔍",
     label: "크로스 모달리티",
     value: "3개 통합",
-    change: "DNA+RNA+Protein",
+    change: "RNA+Protein+Methyl",
     changeType: "positive",
     iconBg: "#fef3c7",
     iconColor: "#f59e0b",
@@ -39,47 +60,117 @@ const previewItems = [
   },
 ];
 
-export const PreviewResults = () => {
+export const PreviewResults: React.FC<PreviewResultsProps> = ({
+  imputationResult,
+  isExecuting,
+}) => {
+  const hasResult = imputationResult && imputationResult.status === "completed" && imputationResult.results;
+
+  // 보간 작업이 시작되지 않았으면 아무것도 표시하지 않음
+  if (!isExecuting && !hasResult) {
+    return null;
+  }
+
   return (
     <S.PreviewPanel>
       <S.PreviewTitle>
-        <span>✨</span> 보간 시뮬레이션 결과
+        <span>✨</span> {hasResult ? "보간 결과" : "보간 시뮬레이션 결과"}
       </S.PreviewTitle>
 
-      <S.PreviewGrid>
-        {previewItems.map((item, index) => (
-          <S.PreviewItem key={index}>
-            <S.PreviewIcon $bg={item.iconBg} $color={item.iconColor}>
-              {item.icon}
-            </S.PreviewIcon>
-            <S.PreviewContent>
-              <S.PreviewLabel>{item.label}</S.PreviewLabel>
-              <S.PreviewValue>{item.value}</S.PreviewValue>
-              <S.PreviewChange $type={item.changeType as "positive" | "negative" | "neutral"}>
-                {item.change}
-              </S.PreviewChange>
-            </S.PreviewContent>
-          </S.PreviewItem>
-        ))}
-      </S.PreviewGrid>
+      {isExecuting && (
+        <div style={{ padding: "2rem", textAlign: "center", color: "#1976d2", fontSize: "1.1rem" }}>
+          ⏳ 보간 작업이 진행 중입니다...
+        </div>
+      )}
 
-      <S.RecommendationBox>
-        <S.RecommendationTitle>🎯 MOCHI 모델 추천</S.RecommendationTitle>
-        <S.RecommendationText>
-          멀티오믹스 데이터 패턴 분석 결과, <strong>MOCHI Imputation Model</strong>이 가장 적합합니다.
-          DNA(99%), RNA(80%), Protein(75%)의 서로 다른 완전성 수준을 고려하여 크로스 모달리티 정보를
-          활용한 보간이 가능하며, 예상 정확도는 <strong>97.3%</strong>입니다.
-        </S.RecommendationText>
-        <S.RecommendationNote>
-          <span>✅</span>
-          <span>proMODMatcher와 BatchEval을 통한 검증 후 적용을 권장합니다.</span>
-        </S.RecommendationNote>
-      </S.RecommendationBox>
+      {hasResult && (
+        <div>
+          <div style={{ padding: "1.5rem", backgroundColor: "#e8f5e9", color: "#2e7d32", borderRadius: "12px", marginBottom: "1.5rem" }}>
+            <div style={{ fontSize: "1.2rem", fontWeight: "600", marginBottom: "1rem" }}>✅ 보간 완료!</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", fontSize: "0.95rem" }}>
+              <div>• RNA 결측치: <strong>{imputationResult.results!.rna_missing_imputed}개</strong> 보간</div>
+              <div>• Protein 결측치: <strong>{imputationResult.results!.protein_missing_imputed}개</strong> 보간</div>
+              <div>• Methyl 결측치: <strong>{imputationResult.results!.methyl_missing_imputed}개</strong> 보간</div>
+              <div>• 총 샘플 수: <strong>{imputationResult.results!.total_samples}개</strong></div>
+            </div>
+          </div>
 
-      <S.ActionButtons>
-        <S.Button $primary>🚀 보간 실행</S.Button>
-        <S.Button>⚙️ 고급 설정</S.Button>
-      </S.ActionButtons>
+          <div style={{ padding: "1.5rem", backgroundColor: "#f5f5f5", borderRadius: "12px" }}>
+            <div style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "1rem" }}>📥 보간된 데이터 다운로드</div>
+            <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+              <button
+                onClick={() => {
+                  const url = `http://localhost:8005/api/imputation/download/${imputationResult.jobId}/rna`;
+                  window.open(url, "_blank");
+                }}
+                style={{
+                  flex: "1",
+                  minWidth: "150px",
+                  padding: "0.75rem 1.5rem",
+                  backgroundColor: "#2196F3",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "0.95rem",
+                  fontWeight: "600",
+                  transition: "all 0.2s",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#1976D2"}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#2196F3"}
+              >
+                🧬 RNA 데이터
+              </button>
+              <button
+                onClick={() => {
+                  const url = `http://localhost:8005/api/imputation/download/${imputationResult.jobId}/protein`;
+                  window.open(url, "_blank");
+                }}
+                style={{
+                  flex: "1",
+                  minWidth: "150px",
+                  padding: "0.75rem 1.5rem",
+                  backgroundColor: "#4CAF50",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "0.95rem",
+                  fontWeight: "600",
+                  transition: "all 0.2s",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#388E3C"}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#4CAF50"}
+              >
+                🔬 Protein 데이터
+              </button>
+              <button
+                onClick={() => {
+                  const url = `http://localhost:8005/api/imputation/download/${imputationResult.jobId}/methyl`;
+                  window.open(url, "_blank");
+                }}
+                style={{
+                  flex: "1",
+                  minWidth: "150px",
+                  padding: "0.75rem 1.5rem",
+                  backgroundColor: "#9C27B0",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "0.95rem",
+                  fontWeight: "600",
+                  transition: "all 0.2s",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#7B1FA2"}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#9C27B0"}
+              >
+                🧪 Methyl 데이터
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </S.PreviewPanel>
   );
 };

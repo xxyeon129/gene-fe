@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import * as S from "./dataInput.styles";
 import { apiClient } from "@/shared/api";
 
@@ -6,8 +6,17 @@ interface DataInputProps {
   onFileUploaded?: () => void;
 }
 
-export const DataInput = ({ onFileUploaded }: DataInputProps) => {
-  const [activeTab, setActiveTab] = useState<"api" | "file">("api");
+interface Project {
+  id: number;
+  name: string;
+}
+
+export interface DataInputRef {
+  refreshProjects: () => Promise<void>;
+}
+
+export const DataInput = forwardRef<DataInputRef, DataInputProps>(({ onFileUploaded }, ref) => {
+  const [activeTab, setActiveTab] = useState<"api" | "file">("file");
   const [apiUrl, setApiUrl] = useState("");
   const [authType, setAuthType] = useState("API Key");
   const [apiKey, setApiKey] = useState("");
@@ -15,15 +24,100 @@ export const DataInput = ({ onFileUploaded }: DataInputProps) => {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
+  const [loadingFiles, setLoadingFiles] = useState(false);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setLoadingProjects(true);
+        const data = await apiClient.getProjects() as Project[];
+        setProjects(data);
+        if (data.length > 0) {
+          setSelectedProjectId(data[0].id);
+        }
+      } catch (err) {
+        console.error("Failed to fetch projects:", err);
+      } finally {
+        setLoadingProjects(false);
+      }
+    };
+    fetchProjects();
+  }, []);
+
+  useEffect(() => {
+    const fetchFiles = async () => {
+      if (!selectedProjectId) return;
+
+      try {
+        setLoadingFiles(true);
+        const files = await apiClient.getDataFiles(selectedProjectId) as any[];
+        setUploadedFiles(files);
+      } catch (err) {
+        console.error("Failed to fetch files:", err);
+      } finally {
+        setLoadingFiles(false);
+      }
+    };
+    fetchFiles();
+  }, [selectedProjectId]);
+
+  const refreshFiles = async () => {
+    if (!selectedProjectId) return;
+
+    try {
+      setLoadingFiles(true);
+      const files = await apiClient.getDataFiles(selectedProjectId) as any[];
+      setUploadedFiles(files);
+    } catch (err) {
+      console.error("Failed to fetch files:", err);
+    } finally {
+      setLoadingFiles(false);
+    }
+  };
+
+  const refreshProjects = async () => {
+    try {
+      setLoadingProjects(true);
+      const data = await apiClient.getProjects() as Project[];
+      setProjects(data);
+
+      // 새로운 프로젝트가 추가되었을 때 자동으로 선택
+      if (data.length > 0 && !selectedProjectId) {
+        setSelectedProjectId(data[0].id);
+      }
+    } catch (err) {
+      console.error("Failed to fetch projects:", err);
+    } finally {
+      setLoadingProjects(false);
+    }
+  };
+
+  // 외부에서 프로젝트 목록을 새로고침할 수 있도록 ref 노출
+  useImperativeHandle(ref, () => ({
+    refreshProjects,
+  }));
 
   const handleFileUpload = async (file: File) => {
+    if (!selectedProjectId) {
+      setUploadError("프로젝트를 선택해주세요.");
+      return;
+    }
+
     try {
       setUploading(true);
       setUploadError(null);
       setUploadSuccess(false);
-      await apiClient.uploadFile(file);
+      await apiClient.uploadFile(file, selectedProjectId);
       setUploadSuccess(true);
       setTimeout(() => setUploadSuccess(false), 3000);
+
+      // 파일 목록 새로고침
+      await refreshFiles();
+
       // 파일 업로드 성공 시 프로젝트 목록 갱신
       if (onFileUploaded) {
         onFileUploaded();
@@ -42,7 +136,8 @@ export const DataInput = ({ onFileUploaded }: DataInputProps) => {
         <S.CardTitle>데이터 입력 방법</S.CardTitle>
       </S.CardHeader>
 
-      <S.TabGroup>
+      {/* API 연동 탭 - 주석처리됨 */}
+      {/* <S.TabGroup>
         <S.TabItem $active={activeTab === "api"} onClick={() => setActiveTab("api")}>
           API 연동
         </S.TabItem>
@@ -83,9 +178,26 @@ export const DataInput = ({ onFileUploaded }: DataInputProps) => {
           <S.Button>연결 테스트</S.Button>
         </S.TabContent>
       )}
+      */}
 
-      {activeTab === "file" && (
-        <S.TabContent>
+      <S.TabContent>
+          <S.FormGroup>
+            <S.FormLabel>프로젝트 선택</S.FormLabel>
+            <S.FormSelect
+              value={selectedProjectId || ""}
+              onChange={(e) => setSelectedProjectId(Number(e.target.value))}
+              disabled={loadingProjects}
+            >
+              <option value="">프로젝트를 선택하세요</option>
+              {projects.map(project => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </S.FormSelect>
+            {loadingProjects && <div style={{ fontSize: "0.875rem", color: "#666", marginTop: "0.5rem" }}>프로젝트 목록 로딩 중...</div>}
+          </S.FormGroup>
+
           <S.UploadArea
             onClick={() => fileInputRef.current?.click()}
             onDragOver={(e) => {
@@ -118,8 +230,44 @@ export const DataInput = ({ onFileUploaded }: DataInputProps) => {
           {uploadError && <div style={{ color: "red", marginTop: "1rem" }}>에러: {uploadError}</div>}
           {uploadSuccess && <div style={{ color: "green", marginTop: "1rem" }}>파일이 성공적으로 업로드되었습니다!</div>}
           {uploading && <div style={{ marginTop: "1rem" }}>업로드 중...</div>}
+
+          {selectedProjectId && (
+            <div style={{ marginTop: "2rem" }}>
+              <h4 style={{ marginBottom: "1rem", fontSize: "1rem", fontWeight: "bold" }}>업로드된 파일 ({uploadedFiles.length})</h4>
+              {loadingFiles ? (
+                <div style={{ color: "#666" }}>파일 목록 로딩 중...</div>
+              ) : uploadedFiles.length === 0 ? (
+                <div style={{ color: "#666", padding: "1rem", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
+                  아직 업로드된 파일이 없습니다.
+                </div>
+              ) : (
+                <div style={{ border: "1px solid #e0e0e0", borderRadius: "4px", overflow: "hidden" }}>
+                  {uploadedFiles.map((file, index) => (
+                    <div
+                      key={file.id || index}
+                      style={{
+                        padding: "0.75rem 1rem",
+                        borderBottom: index < uploadedFiles.length - 1 ? "1px solid #e0e0e0" : "none",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: "500" }}>{file.name}</div>
+                        <div style={{ fontSize: "0.875rem", color: "#666", marginTop: "0.25rem" }}>
+                          {file.size} • {file.createdAt || "날짜 미상"}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </S.TabContent>
-      )}
     </S.Card>
   );
-};
+});
+
+DataInput.displayName = "DataInput";

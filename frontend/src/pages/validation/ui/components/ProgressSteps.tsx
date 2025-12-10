@@ -1,13 +1,47 @@
 import * as S from "./progressSteps.styles";
 
-const steps = [
-  { number: "✓", label: "데이터 로드", status: "completed" },
-  { number: "✓", label: "형식 검사", status: "completed" },
-  { number: "3", label: "품질 검증", status: "active" },
-  { number: "4", label: "보고서 생성", status: "pending" },
-];
+interface ValidationResult {
+  files: Array<{
+    filename: string;
+    total_values: number;
+    nan_count: number;
+    nan_percentage: number;
+    shape: number[];
+    passed: boolean;
+  }>;
+  total_files: number;
+  passed_files: number;
+  all_passed: boolean;
+}
 
-export const ProgressSteps = () => {
+interface ProgressStepsProps {
+  validationResult: ValidationResult | null;
+}
+
+export const ProgressSteps = ({ validationResult }: ProgressStepsProps) => {
+  const steps = [
+    {
+      number: "✓",
+      label: "데이터 로드",
+      status: validationResult ? "completed" : "pending"
+    },
+    {
+      number: "✓",
+      label: "형식 검사",
+      status: validationResult ? "completed" : "pending"
+    },
+    {
+      number: validationResult ? "✓" : "3",
+      label: "품질 검증",
+      status: validationResult ? "completed" : "active"
+    },
+    {
+      number: validationResult ? "✓" : "4",
+      label: "보고서 생성",
+      status: validationResult ? "completed" : "pending"
+    },
+  ];
+
   return (
     <S.ProgressSteps>
       {steps.map((step, index) => (

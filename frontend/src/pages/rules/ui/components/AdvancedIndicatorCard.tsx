@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as S from "./advancedIndicatorCard.styles";
 
 interface AdvancedIndicatorCardProps {
@@ -9,6 +9,7 @@ interface AdvancedIndicatorCardProps {
   options?: string[];
   threshold?: number;
   ranges?: { type: string; range: string }[];
+  onThresholdChange?: (value: number) => void;
 }
 
 export const AdvancedIndicatorCard = ({
@@ -19,15 +20,30 @@ export const AdvancedIndicatorCard = ({
   options,
   threshold,
   ranges,
+  onThresholdChange,
 }: AdvancedIndicatorCardProps) => {
   const [selectedOptions, setSelectedOptions] = useState<string[]>(options || []);
   const [thresholdValue, setThresholdValue] = useState(threshold || 0);
   const [selectedTool, setSelectedTool] = useState(tool || "");
 
+  // threshold prop이 변경되면 로컬 상태 업데이트
+  useEffect(() => {
+    if (threshold !== undefined) {
+      setThresholdValue(threshold);
+    }
+  }, [threshold]);
+
   const handleOptionChange = (option: string) => {
     setSelectedOptions((prev) =>
       prev.includes(option) ? prev.filter((o) => o !== option) : [...prev, option]
     );
+  };
+
+  const handleThresholdValueChange = (value: number) => {
+    setThresholdValue(value);
+    if (onThresholdChange) {
+      onThresholdChange(value);
+    }
   };
 
   return (
@@ -74,7 +90,8 @@ export const AdvancedIndicatorCard = ({
             value={thresholdValue}
             min="0"
             max="100"
-            onChange={(e) => setThresholdValue(Number(e.target.value))}
+            step="0.1"
+            onChange={(e) => handleThresholdValueChange(Number(e.target.value))}
           />
         </S.FormGroup>
       )}

@@ -24,7 +24,11 @@ export interface ProjectManageRef {
   refreshProjects: () => Promise<void>;
 }
 
-export const ProjectManage = forwardRef<ProjectManageRef>((_props, ref) => {
+interface ProjectManageProps {
+  onProjectCreated?: () => void;
+}
+
+export const ProjectManage = forwardRef<ProjectManageRef, ProjectManageProps>((props, ref) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<number | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -55,8 +59,33 @@ export const ProjectManage = forwardRef<ProjectManageRef>((_props, ref) => {
     try {
       const data = (await apiClient.getProjects()) as Project[];
       setProjects(data);
+
+      // 상위 컴포넌트에 프로젝트 생성 알림 (DataInput 갱신용)
+      if (props.onProjectCreated) {
+        props.onProjectCreated();
+      }
     } catch (err) {
       console.error("Failed to refresh projects:", err);
+    }
+  };
+
+  const handleProjectDelete = async (projectId: number) => {
+    try {
+      await apiClient.deleteProject(projectId);
+
+      // 프로젝트 목록 갱신
+      const data = (await apiClient.getProjects()) as Project[];
+      setProjects(data);
+
+      // 삭제된 프로젝트가 선택되어 있었다면 선택 해제
+      if (selectedProject === projectId) {
+        setSelectedProject(data.length > 0 ? data[0].id : null);
+      }
+
+      alert("프로젝트가 성공적으로 삭제되었습니다.");
+    } catch (err) {
+      console.error("Failed to delete project:", err);
+      alert("프로젝트 삭제에 실패했습니다.");
     }
   };
 
@@ -102,6 +131,7 @@ export const ProjectManage = forwardRef<ProjectManageRef>((_props, ref) => {
               project={project}
               selected={selectedProject === project.id}
               onClick={() => setSelectedProject(project.id)}
+              onDelete={handleProjectDelete}
             />
           ))}
         </S.ProjectGrid>

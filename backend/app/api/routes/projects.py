@@ -29,6 +29,7 @@ def project_to_dict(project: ProjectModel) -> dict:
         "status": project.status,
         "DNA_qualityScore": project.dna_quality_score,
         "RNA_qualityScore": project.rna_quality_score,
+        "Methyl_qualityScore": project.methyl_quality_score,
         "Protein_qualityScore": project.protein_quality_score,
         "sample_accuracy": project.sample_accuracy,
     }
@@ -64,6 +65,7 @@ async def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
         status=project.status,
         dna_quality_score=project.dna_quality_score,
         rna_quality_score=project.rna_quality_score,
+        methyl_quality_score=project.methyl_quality_score,
         protein_quality_score=project.protein_quality_score,
         sample_accuracy=project.sample_accuracy,
     )
@@ -79,7 +81,7 @@ async def update_project(project_id: int, project: ProjectCreate, db: Session = 
     db_project = db.query(ProjectModel).filter(ProjectModel.id == project_id).first()
     if not db_project:
         raise HTTPException(status_code=404, detail="Project not found")
-    
+
     db_project.name = project.name
     db_project.description = project.description
     db_project.data_type = project.data_type
@@ -90,10 +92,11 @@ async def update_project(project_id: int, project: ProjectCreate, db: Session = 
     db_project.status = project.status
     db_project.dna_quality_score = project.dna_quality_score
     db_project.rna_quality_score = project.rna_quality_score
+    db_project.methyl_quality_score = project.methyl_quality_score
     db_project.protein_quality_score = project.protein_quality_score
     db_project.sample_accuracy = project.sample_accuracy
     db_project.updated_at = datetime.utcnow()
-    
+
     db.commit()
     db.refresh(db_project)
     return project_to_dict(db_project)

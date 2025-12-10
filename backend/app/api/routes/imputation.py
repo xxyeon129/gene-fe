@@ -14,10 +14,26 @@ from app.models.schemas import (
 )
 from app.services.imputation_service import ImputationService
 from app.services.ml_model_client import MLModelClient
+from app.services.multiomics_imputation_service import MultiOmicsImputationService
+from pathlib import Path
 
 router = APIRouter()
 imputation_service = ImputationService()
 ml_client = MLModelClient()
+
+# 멀티오믹스 서비스 (싱글톤)
+multiomics_service = None
+
+def get_multiomics_service():
+    """멀티오믹스 서비스 인스턴스 가져오기 (lazy loading)"""
+    global multiomics_service
+    if multiomics_service is None:
+        try:
+            multiomics_service = MultiOmicsImputationService()
+        except Exception as e:
+            print(f"Failed to initialize MultiOmicsImputationService: {e}")
+            multiomics_service = None
+    return multiomics_service
 
 # Mock imputation methods
 MOCK_IMPUTATION_METHODS = [
@@ -39,12 +55,14 @@ MOCK_IMPUTATION_METHODS = [
         "description": "유사한 샘플들의 값을 기반으로 결측치를 추정합니다.",
         "accuracy": "~88%"
     },
-    {
-        "value": "mice",
-        "label": "MICE (Multiple Imputation by Chained Equations)",
-        "description": "다중 대체 방법으로 여러 개의 완전한 데이터셋을 생성합니다.",
-        "accuracy": "~92%"
-    },
+    # TODO: MICE는 대용량 데이터(특성 수 > 10,000)에 대해 계산 시간이 매우 오래 걸림 (수 시간)
+    # 추후 샘플링 또는 PCA 기반 차원 축소 등의 최적화 필요
+    # {
+    #     "value": "mice",
+    #     "label": "MICE (Multiple Imputation by Chained Equations)",
+    #     "description": "다중 대체 방법으로 여러 개의 완전한 데이터셋을 생성합니다.",
+    #     "accuracy": "~92%"
+    # },
     {
         "value": "missforest",
         "label": "MissForest",
@@ -111,33 +129,40 @@ async def execute_imputation(
 @router.get("/status/{job_id}")
 async def get_imputation_status(job_id: str):
     """보간 작업 상태 조회"""
+    # imputation_service의 jobs 딕셔너리에서 상태 확인
+    job = imputation_service.jobs.get(job_id)
+    if job:
+        # 서비스에서 완료/실패 상태가 업데이트되었으면 로컬 딕셔너리도 업데이트
+        imputation_jobs[job_id] = job
+        return job
+
+    # 서비스에 없으면 로컬 딕셔너리에서 확인 (초기 processing 상태)
     job = imputation_jobs.get(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
-    
+
     return job
 
 
 @router.get("/results/{job_id}")
 async def get_imputation_results(job_id: str):
     """보간 결과 조회"""
-    job = imputation_jobs.get(job_id)
+    # imputation_service의 jobs 딕셔너리에서 확인
+    job = imputation_service.jobs.get(job_id)
     if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    
+        job = imputation_jobs.get(job_id)
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+
     if job["status"] != "completed":
         raise HTTPException(status_code=400, detail="Job not completed yet")
-    
-    # TODO: 실제 결과 데이터 반환
+
+    # 실제 결과 데이터 반환
     return {
         "job_id": job_id,
         "status": "completed",
-        "results": {
-            "imputed_samples": 1226,
-            "imputed_features": 4523,
-            "quality_score": 94.5,
-            "output_file": f"imputed_data_{job_id}.csv"
-        }
+        "method": job.get("method"),
+        "results": job.get("results", {})
     }
 
 
@@ -181,3 +206,165 @@ async def list_ml_models():
             detail=f"Failed to list models: {str(e)}"
         )
 
+
+
+@router.post("/execute-multiomics")
+async def execute_multiomics_imputation(
+    project_id: int,
+    threshold: float = 30.0,
+    quality_threshold: float = 85.0,
+    background_tasks: BackgroundTasks = None
+):
+    """
+    멀티오믹스 데이터 보간 실행 (RNA, Protein, Methyl)
+
+    프로젝트에 업로드된 3종류의 omics 데이터에 대해
+    MOCHI tri-joint 모델을 사용하여 결측치 보간을 수행합니다.
+
+    Parameters:
+    - project_id: 프로젝트 ID
+    - threshold: 보간 임계값 (%) - 이 비율 이하의 결측만 보간
+    - quality_threshold: 품질 기준 (%) - 보간 후 최소 품질 점수
+    """
+    job_id = str(uuid.uuid4())
+
+    # 백그라운드 작업으로 보간 실행
+    background_tasks.add_task(
+        _run_multiomics_imputation,
+        job_id=job_id,
+        project_id=project_id,
+        threshold=threshold,
+        quality_threshold=quality_threshold
+    )
+
+    imputation_jobs[job_id] = {
+        "status": "processing",
+        "created_at": datetime.now().isoformat(),
+        "project_id": project_id,
+        "method": "mochi_multiomics",
+        "threshold": threshold,
+        "quality_threshold": quality_threshold
+    }
+
+    return {
+        "jobId": job_id,
+        "status": "processing",
+        "message": "Multi-omics imputation job started",
+        "estimatedTime": 180
+    }
+
+
+def _run_multiomics_imputation(job_id: str, project_id: int, threshold: float = 30.0, quality_threshold: float = 85.0):
+    """멀티오믹스 보간 백그라운드 작업"""
+    try:
+        print(f"[Job {job_id}] Starting multi-omics imputation for project {project_id}")
+        print(f"[Job {job_id}] Parameters - threshold: {threshold}%, quality_threshold: {quality_threshold}%")
+
+        # 서비스 인스턴스 가져오기
+        service = get_multiomics_service()
+        if service is None:
+            raise RuntimeError("Failed to initialize MultiOmicsImputationService")
+
+        # 데이터 로드
+        data_dir = Path("/home/humandeep/data-qc/uploads")
+        rna_df, protein_df, methyl_df = service.load_multiomics_data(project_id, data_dir)
+
+        if rna_df is None or protein_df is None or methyl_df is None:
+            missing = []
+            if rna_df is None:
+                missing.append("RNA")
+            if protein_df is None:
+                missing.append("Protein")
+            if methyl_df is None:
+                missing.append("Methyl")
+            raise ValueError(f"Missing required omics data: {', '.join(missing)}")
+
+        print(f"[Job {job_id}] Data loaded - RNA: {rna_df.shape}, Protein: {protein_df.shape}, Methyl: {methyl_df.shape}")
+
+        # 보간 수행
+        results = service.impute_multiomics(rna_df, protein_df, methyl_df)
+
+        # 보간 결과 저장
+        output_dir = data_dir / f"project_{project_id}" / "imputed"
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        rna_output = output_dir / f"{job_id}_rna_imputed.tsv"
+        protein_output = output_dir / f"{job_id}_protein_imputed.tsv"
+        methyl_output = output_dir / f"{job_id}_methyl_imputed.tsv"
+
+        results['rna'].to_csv(rna_output, sep="\t")
+        results['protein'].to_csv(protein_output, sep="\t")
+        results['methyl'].to_csv(methyl_output, sep="\t")
+
+        print(f"[Job {job_id}] Results saved to {output_dir}")
+
+        # 작업 상태 업데이트
+        stats = results['statistics']
+        imputation_jobs[job_id] = {
+            "status": "completed",
+            "created_at": imputation_jobs[job_id]["created_at"],
+            "completed_at": datetime.now().isoformat(),
+            "project_id": project_id,
+            "method": "mochi_multiomics",
+            "results": {
+                "rna_missing_imputed": int(stats['rna_missing_before']),
+                "protein_missing_imputed": int(stats['protein_missing_before']),
+                "methyl_missing_imputed": int(stats['methyl_missing_before']),
+                "total_samples": int(stats['total_samples']),
+                "output_files": {
+                    "rna": str(rna_output),
+                    "protein": str(protein_output),
+                    "methyl": str(methyl_output)
+                }
+            }
+        }
+
+        print(f"[Job {job_id}] Multi-omics imputation completed successfully")
+
+    except Exception as e:
+        print(f"[Job {job_id}] Multi-omics imputation failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        imputation_jobs[job_id] = {
+            "status": "failed",
+            "created_at": imputation_jobs[job_id]["created_at"],
+            "failed_at": datetime.now().isoformat(),
+            "project_id": project_id,
+            "error": str(e)
+        }
+
+
+@router.get("/download/{job_id}/{omics_type}")
+async def download_imputed_data(job_id: str, omics_type: str):
+    """
+    보간된 데이터 다운로드
+
+    Parameters:
+    - job_id: 보간 작업 ID
+    - omics_type: 오믹스 타입 (rna, protein, methyl)
+    """
+    from fastapi.responses import FileResponse
+
+    job = imputation_jobs.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    if job["status"] != "completed":
+        raise HTTPException(status_code=400, detail="Job not completed yet")
+
+    # 파일 경로 가져오기
+    output_files = job.get("results", {}).get("output_files", {})
+    file_path = output_files.get(omics_type)
+
+    if not file_path or not Path(file_path).exists():
+        raise HTTPException(status_code=404, detail=f"{omics_type} imputed data file not found")
+
+    # 파일명 생성
+    filename = f"{omics_type}_imputed_{job_id}.tsv"
+
+    return FileResponse(
+        path=file_path,
+        filename=filename,
+        media_type="text/tab-separated-values"
+    )

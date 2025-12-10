@@ -10,33 +10,46 @@ import { apiClient } from "@/shared/api";
 import type { Project } from "@/entities";
 import { useEffect, useState } from "react";
 
+interface DashboardStats {
+  activeProjects: number;
+  avgQuality: string;
+  processedDatasets: number;
+  avgMissingRate: string;
+}
+
 export const DashboardPage = () => {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
 
   useEffect(() => {
-    const fetchProjects = async () => {
-      const projects = (await apiClient.getProjects()) as Project[];
-      setProjects(projects);
+    const fetchData = async () => {
+      const [projectsData, statsData] = await Promise.all([
+        apiClient.getProjects() as Promise<Project[]>,
+        apiClient.getDashboardStats() as Promise<DashboardStats>,
+      ]);
+      setProjects(projectsData);
+      setStats(statsData);
     };
-    fetchProjects();
+    fetchData();
   }, []);
 
   return (
     <S.Section>
       <S.DashboardGrid>
-        <StatCard value={projects.length.toString()} label="활성 프로젝트" trend={{ type: "up", text: "↑ 20% 이번 달" }} color="blue" />
-        <StatCard value="94.3%" label="평균 데이터 품질" trend={{ type: "up", text: "↑ 2.1% 향상" }} color="green" />
-        <StatCard value="2,847" label="처리된 데이터셋" trend={{ type: "up", text: "↑ 156 신규" }} color="yellow" />
-        <StatCard value="5.2%" label="평균 결측률" trend={{ type: "down", text: "↓ 3.4% 감소" }} color="purple" />
+        <StatCard value={stats?.activeProjects.toString() || "0"} label="활성 프로젝트" color="blue" />
+        <StatCard value={stats?.avgQuality || "0%"} label="평균 데이터 품질" color="green" />
+        <StatCard value={stats?.processedDatasets.toString() || "0"} label="처리된 데이터셋" color="yellow" />
+        <StatCard value={stats?.avgMissingRate || "0%"} label="평균 결측률" color="purple" />
       </S.DashboardGrid>
 
-      <S.Card>
+      {/* 최근 활동 섹션 - 주석처리됨 */}
+      {/* <S.Card>
         <S.CardHeader>
           <S.CardTitle>최근 활동</S.CardTitle>
           <S.Button $variant="secondary">전체 보기</S.Button>
         </S.CardHeader>
         <RecentActivity />
-      </S.Card>
+      </S.Card> */}
 
       <S.Card>
         <S.CardHeader>

@@ -65,5 +65,29 @@ export const ProjectInfo = styled.div`
   font-size: 13px;
 `;
 
+export const DeleteButton = styled.button`
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  opacity: 0.6;
+
+  &:hover {
+    opacity: 1;
+    background: #fee2e2;
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+`;
+
 
 

@@ -279,13 +279,13 @@ source venv/bin/activate  # Mac/Linux
 venv\Scripts\activate  # Windows
 
 # 개발 모드 (자동 리로드)
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uvicorn main:app --reload --host 0.0.0.0 --port 8005
 
 # 프로덕션 모드
-uvicorn main:app --host 0.0.0.0 --port 8000
+uvicorn main:app --host 0.0.0.0 --port 8005
 ```
 
-서버는 기본적으로 `http://localhost:8000`에서 실행됩니다.
+서버는 기본적으로 `http://localhost:8005`에서 실행됩니다.
 
 ## API 엔드포인트
 

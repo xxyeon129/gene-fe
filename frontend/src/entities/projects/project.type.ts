@@ -6,4 +6,9 @@ export interface Project {
   validationStatus: string;
   lastUpdate: string;
   status: string;
+  DNA_qualityScore?: number;
+  RNA_qualityScore?: number;
+  Methyl_qualityScore?: number;
+  Protein_qualityScore?: number;
+  sample_accuracy?: number;
 }

@@ -101,5 +101,40 @@ export const SaveButtonContainer = styled.div`
   border-radius: 8px;
 `;
 
+export const FormGroup = styled.div`
+  margin-bottom: 20px;
+`;
+
+export const FormLabel = styled.label`
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+`;
+
+export const FormSelect = styled.select`
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1f2937;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  &:disabled {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+  }
+`;
+
 
 

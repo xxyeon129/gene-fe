@@ -19,6 +19,7 @@ class ProjectBase(BaseModel):
     status: str
     dna_quality_score: Optional[float] = Field(None, alias="DNA_qualityScore")
     rna_quality_score: Optional[float] = Field(None, alias="RNA_qualityScore")
+    methyl_quality_score: Optional[float] = Field(None, alias="Methyl_qualityScore")
     protein_quality_score: Optional[float] = Field(None, alias="Protein_qualityScore")
     sample_accuracy: Optional[float] = Field(None, alias="sample_accuracy")
     # file_count: Optional[int] = Field(None, alias="fileCount")
@@ -38,6 +39,7 @@ class ProjectCreate(BaseModel):
     status: str = "활성"
     dna_quality_score: Optional[float] = Field(None, alias="DNA_qualityScore")
     rna_quality_score: Optional[float] = Field(None, alias="RNA_qualityScore")
+    methyl_quality_score: Optional[float] = Field(None, alias="Methyl_qualityScore")
     protein_quality_score: Optional[float] = Field(None, alias="Protein_qualityScore")
     sample_accuracy: Optional[float] = Field(None, alias="sample_accuracy")
 
@@ -142,6 +144,9 @@ class ImputationRequest(BaseModel):
     threshold: float = 30.0
     quality_threshold: float = 85.0
     options: Optional[dict] = None
+
+    class Config:
+        populate_by_name = True
 
 
 class ImputationResponse(BaseModel):

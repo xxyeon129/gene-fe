@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import * as S from "./selectProject.styles";
 import { apiClient } from "@/shared/api";
+import { useMissingValue } from "../../contexts/MissingValueContext";
 
 interface MissingValueProject {
   id: number;
@@ -11,7 +12,7 @@ interface MissingValueProject {
 
 export const SelectProject = () => {
   const [projects, setProjects] = useState<MissingValueProject[]>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const { selectedProjectId, setSelectedProjectId } = useMissingValue();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,21 +20,31 @@ export const SelectProject = () => {
     const fetchProjects = async () => {
       try {
         setLoading(true);
-        const data = await apiClient.getMissingValueProjects();
-        setProjects(data);
-        if (data && data.length > 0) {
-          setSelectedProjectId(data[0].id);
+        // 실제 프로젝트 목록 가져오기
+        const projectsData = await apiClient.getProjects();
+
+        // 프로젝트 데이터를 MissingValueProject 형식으로 변환
+        const formattedProjects = projectsData.map((project: any) => ({
+          id: project.id,
+          name: project.name,
+          sampleCount: project.sampleCount || 0,
+          currentMissingValueRate: 0 // TODO: 실제 결측률 계산 필요
+        }));
+
+        setProjects(formattedProjects);
+        if (formattedProjects && formattedProjects.length > 0) {
+          setSelectedProjectId(formattedProjects[0].id);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "프로젝트를 불러오는데 실패했습니다.");
-        console.error("Failed to fetch missing value projects:", err);
+        console.error("Failed to fetch projects:", err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchProjects();
-  }, []);
+  }, [setSelectedProjectId]);
 
   if (loading) {
     return (

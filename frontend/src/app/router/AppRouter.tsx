@@ -19,7 +19,7 @@ export const AppRouter = () => {
       path: "/",
       element: <AppLayout />,
       children: [
-        { path: PATH_URL.MAIN, element: <DashboardPage /> },
+        { index: true, element: <DashboardPage /> },
         { path: PATH_URL.DATASET, element: <DatasetPage /> },
         { path: PATH_URL.RULES, element: <RulesPage /> },
         { path: PATH_URL.VALIDATION, element: <ValidationPage /> },

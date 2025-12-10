@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import * as S from "./qualityIndicatorCard.styles";
 
 interface QualityIndicatorCardProps {
@@ -10,6 +10,7 @@ interface QualityIndicatorCardProps {
   completenessColor: string;
   threshold: number;
   code: string;
+  onThresholdChange?: (value: number) => void;
 }
 
 export const QualityIndicatorCard = ({
@@ -21,8 +22,21 @@ export const QualityIndicatorCard = ({
   completenessColor,
   threshold,
   code,
+  onThresholdChange,
 }: QualityIndicatorCardProps) => {
   const [thresholdValue, setThresholdValue] = useState(threshold);
+
+  // threshold prop이 변경되면 로컬 상태 업데이트 (프로젝트 변경 시)
+  useEffect(() => {
+    setThresholdValue(threshold);
+  }, [threshold]);
+
+  const handleChange = (value: number) => {
+    setThresholdValue(value);
+    if (onThresholdChange) {
+      onThresholdChange(value);
+    }
+  };
 
   return (
     <S.SettingCard>
@@ -38,13 +52,14 @@ export const QualityIndicatorCard = ({
       </S.CompletenessBox>
 
       <S.FormGroup>
-        <S.FormLabel>Missing Rate 허용 임계값</S.FormLabel>
+        <S.FormLabel>Missing Rate 허용 임계값 (%)</S.FormLabel>
         <S.FormInput
           type="number"
           value={thresholdValue}
           min="0"
           max="100"
-          onChange={(e) => setThresholdValue(Number(e.target.value))}
+          step="0.1"
+          onChange={(e) => handleChange(Number(e.target.value))}
         />
       </S.FormGroup>
 

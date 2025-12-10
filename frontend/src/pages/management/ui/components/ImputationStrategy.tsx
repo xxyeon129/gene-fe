@@ -7,11 +7,17 @@ interface ImputationMethod {
   label: string;
 }
 
+interface Project {
+  id: number;
+  name: string;
+  description: string;
+}
+
 const defaultMethods: ImputationMethod[] = [
   { value: "mochi", label: "🚀 MOCHI: Imputation Model (추천)" },
   { value: "mean", label: "Mean/Median Imputation" },
   { value: "knn", label: "KNN Imputation" },
-  { value: "mice", label: "MICE (Multiple Imputation)" },
+  // { value: "mice", label: "MICE (Multiple Imputation)" }, // TODO: 대용량 데이터 최적화 필요
   { value: "missforest", label: "MissForest" },
   { value: "gain", label: "GAIN (Generative Adversarial)" },
   { value: "vae", label: "VAE (Variational Autoencoder)" },
@@ -58,7 +64,17 @@ const methodDescriptions: Record<string, { title: string; description: string; c
   },
 };
 
-export const ImputationStrategy = () => {
+interface ImputationStrategyProps {
+  onImputationComplete?: (result: any) => void;
+  onExecutionStart?: () => void;
+  onExecutionEnd?: () => void;
+}
+
+export const ImputationStrategy: React.FC<ImputationStrategyProps> = ({
+  onImputationComplete,
+  onExecutionStart,
+  onExecutionEnd,
+}) => {
   const [selectedMethod, setSelectedMethod] = useState("mochi");
   const [methods, setMethods] = useState<ImputationMethod[]>(defaultMethods);
   const [loading, setLoading] = useState(false);
@@ -68,6 +84,28 @@ export const ImputationStrategy = () => {
   const [crossValidation, setCrossValidation] = useState(true);
   const [outlierHandling, setOutlierHandling] = useState(true);
   const [timeSeriesPattern, setTimeSeriesPattern] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [loadingProjects, setLoadingProjects] = useState(true);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setLoadingProjects(true);
+        const data = await apiClient.getProjects() as Project[];
+        setProjects(data);
+        if (data.length > 0) {
+          setSelectedProjectId(data[0].id);
+        }
+      } catch (err) {
+        console.error("Failed to fetch projects:", err);
+      } finally {
+        setLoadingProjects(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
 
   useEffect(() => {
     const fetchMethods = async () => {
@@ -89,25 +127,80 @@ export const ImputationStrategy = () => {
   }, []);
 
   const handleExecute = async () => {
+    if (!selectedProjectId) {
+      setError("프로젝트를 선택해주세요.");
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
-      const result = await apiClient.executeImputation({
-        method: selectedMethod,
-        threshold,
-        qualityThreshold,
-        options: {
-          crossValidation,
-          outlierHandling,
-          timeSeriesPattern,
-        },
-      });
-      alert(`보간 작업이 시작되었습니다. Job ID: ${result.jobId || result.id}`);
+      onExecutionStart?.();
+
+      let result: any;
+
+      // 선택된 보간 방법에 따라 다른 API 호출
+      if (selectedMethod === "mochi") {
+        // MOCHI 멀티오믹스 보간 실행
+        result = await apiClient.executeMultiOmicsImputation(
+          selectedProjectId,
+          threshold,
+          qualityThreshold
+        );
+      } else {
+        // 다른 보간 방법 실행 (mean, knn, mice, etc.)
+        result = await apiClient.executeImputation({
+          project_id: selectedProjectId,
+          method: selectedMethod,
+          threshold: threshold,
+          quality_threshold: qualityThreshold,
+          options: {
+            cross_validation: crossValidation,
+            outlier_handling: outlierHandling,
+            time_series_pattern: timeSeriesPattern,
+          }
+        });
+      }
+
+      const jobId = result.jobId || result.id;
+
+      // 폴링을 통해 작업 완료 대기
+      let attempts = 0;
+      const maxAttempts = 60; // 최대 2분 대기
+
+      while (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 2000)); // 2초마다 체크
+        const status: any = await apiClient.getImputationStatus(jobId);
+
+        if (status.status === "completed") {
+          onImputationComplete?.({
+            jobId,
+            status: "completed",
+            method: selectedMethod,
+            results: status.results,
+          });
+          setLoading(false);
+          onExecutionEnd?.();
+          return;
+        } else if (status.status === "failed") {
+          setError(status.error || "보간 작업이 실패했습니다.");
+          setLoading(false);
+          onExecutionEnd?.();
+          return;
+        }
+
+        attempts++;
+      }
+
+      // 타임아웃
+      setError("보간 작업 시간이 초과되었습니다.");
+      setLoading(false);
+      onExecutionEnd?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "보간 실행에 실패했습니다.");
       console.error("Failed to execute imputation:", err);
-    } finally {
       setLoading(false);
+      onExecutionEnd?.();
     }
   };
 
@@ -119,6 +212,23 @@ export const ImputationStrategy = () => {
         <S.SettingIcon>🎯</S.SettingIcon>
         <S.SettingTitle>보간 전략 설정</S.SettingTitle>
       </S.SettingHeader>
+
+      <S.FormGroup>
+        <S.FormLabel>프로젝트 선택</S.FormLabel>
+        <S.FormSelect
+          value={selectedProjectId || ""}
+          onChange={(e) => setSelectedProjectId(Number(e.target.value))}
+          disabled={loadingProjects}
+        >
+          <option value="">프로젝트를 선택하세요</option>
+          {projects.map(project => (
+            <option key={project.id} value={project.id}>
+              {project.name}
+            </option>
+          ))}
+        </S.FormSelect>
+        {loadingProjects && <div style={{ fontSize: "0.875rem", color: "#666", marginTop: "0.5rem" }}>프로젝트 목록 로딩 중...</div>}
+      </S.FormGroup>
 
       <S.FormGroup>
         <S.FormLabel>
@@ -218,17 +328,17 @@ export const ImputationStrategy = () => {
       <S.FormGroup>
         <button
           onClick={handleExecute}
-          disabled={loading}
+          disabled={loading || !selectedProjectId}
           style={{
             width: "100%",
             padding: "12px 24px",
-            background: loading ? "#9ca3af" : "linear-gradient(135deg, #667eea, #764ba2)",
+            background: (loading || !selectedProjectId) ? "#9ca3af" : "linear-gradient(135deg, #667eea, #764ba2)",
             color: "white",
             border: "none",
             borderRadius: "8px",
             fontSize: "14px",
             fontWeight: 600,
-            cursor: loading ? "not-allowed" : "pointer",
+            cursor: (loading || !selectedProjectId) ? "not-allowed" : "pointer",
             transition: "all 0.2s",
           }}
         >

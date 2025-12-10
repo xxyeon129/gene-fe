@@ -6,6 +6,8 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from datetime import datetime
+from pathlib import Path
+import os
 from app.models.schemas import DataFile, DataFileCreate
 from app.models.base import DataFile as DataFileModel
 from app.db.session import get_db
@@ -49,28 +51,54 @@ async def upload_data_file(
     project_id: Optional[int] = None,
     db: Session = Depends(get_db)
 ):
-    """데이터 파일 업로드"""
-    # 파일 크기 계산
-    content = await file.read()
-    file_size = len(content)
-    size_str = f"{file_size / (1024**3):.2f} GB" if file_size > 1024**3 else f"{file_size / (1024**2):.2f} MB"
-    
-    # DB에 파일 정보 저장
-    db_file = DataFileModel(
-        project_id=project_id or 1,  # 기본 프로젝트 ID
-        name=file.filename or "uploaded_file",
-        size=size_str,
-        file_path=None,  # TODO: 실제 파일 저장 경로
-    )
-    
-    db.add(db_file)
-    db.commit()
-    db.refresh(db_file)
-    
-    return {
-        "message": "File uploaded successfully",
-        "file": datafile_to_dict(db_file)
-    }
+    """
+    데이터 파일 업로드
+
+    멀티오믹스 데이터 (RNA, Protein, Methyl)를 업로드하고 저장합니다.
+    """
+    try:
+        # 파일 읽기
+        content = await file.read()
+        file_size = len(content)
+        size_str = f"{file_size / (1024**3):.2f} GB" if file_size > 1024**3 else f"{file_size / (1024**2):.2f} MB"
+
+        # 업로드 디렉토리 생성 (홈 디렉토리 사용)
+        upload_base = Path("/home/humandeep/data-qc/uploads")
+        project_dir = upload_base / f"project_{project_id or 1}" / "raw"
+        project_dir.mkdir(parents=True, exist_ok=True)
+
+        # 파일 저장 경로
+        safe_filename = file.filename or "uploaded_file"
+        file_path = project_dir / safe_filename
+
+        # 파일을 디스크에 저장
+        with open(file_path, "wb") as f:
+            f.write(content)
+
+        # DB에 파일 정보 저장
+        db_file = DataFileModel(
+            project_id=project_id or 1,
+            name=safe_filename,
+            size=size_str,
+            file_path=str(file_path),  # 실제 파일 경로 저장
+        )
+
+        db.add(db_file)
+        db.commit()
+        db.refresh(db_file)
+
+        return {
+            "message": "File uploaded successfully",
+            "file": datafile_to_dict(db_file),
+            "path": str(file_path)
+        }
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"File upload failed: {str(e)}"
+        )
 
 
 @router.delete("/{file_id}")
